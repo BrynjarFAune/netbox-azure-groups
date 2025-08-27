@@ -1,7 +1,6 @@
 from django import forms
 from django.contrib.contenttypes.models import ContentType
 from netbox.forms import NetBoxModelForm, NetBoxModelFilterSetForm
-from utilities.forms import BootstrapMixin, DatePicker, DynamicModelChoiceField
 from .models import AzureGroup, GroupMembership, GroupTypeChoices
 
 
@@ -13,7 +12,7 @@ class AzureGroupForm(NetBoxModelForm):
             'is_security_enabled', 'is_mail_enabled', 'created_datetime', 'tags'
         ]
         widgets = {
-            'created_datetime': DatePicker(),
+            'created_datetime': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
         }
 
 
@@ -23,15 +22,14 @@ class AzureGroupFilterForm(NetBoxModelFilterSetForm):
     name = forms.CharField(required=False)
     object_id = forms.CharField(required=False)
     group_type = forms.MultipleChoiceField(
-        choices=GroupTypeChoices,
+        choices=GroupTypeChoices.CHOICES,
         required=False
     )
-    is_security_enabled = forms.NullBooleanField(required=False)
-    is_mail_enabled = forms.NullBooleanField(required=False)
+    is_security_enabled = forms.BooleanField(required=False)
+    is_mail_enabled = forms.BooleanField(required=False)
 
 
 class GroupMembershipForm(NetBoxModelForm):
-    group = DynamicModelChoiceField(queryset=AzureGroup.objects.all())
     content_type = forms.ModelChoiceField(
         queryset=ContentType.objects.filter(
             app_label__in=['tenancy', 'dcim'],
@@ -52,7 +50,7 @@ class GroupMembershipForm(NetBoxModelForm):
 class GroupMembershipFilterForm(NetBoxModelFilterSetForm):
     model = GroupMembership
     
-    group_id = DynamicModelChoiceField(
+    group = forms.ModelChoiceField(
         queryset=AzureGroup.objects.all(),
         required=False,
         label='Group'
