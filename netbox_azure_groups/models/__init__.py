@@ -1,3 +1,3 @@
-from .azure_groups import AzureGroup, GroupMembership
+from .azure_groups import AzureGroup, GroupMembership, GroupTypeChoices
 
-__all__ = ['AzureGroup', 'GroupMembership']
+__all__ = ['AzureGroup', 'GroupMembership', 'GroupTypeChoices']
