@@ -1,0 +1,1 @@
+# Django migrations for NetBox Azure Groups plugin

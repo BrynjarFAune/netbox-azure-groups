@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(C:\\Users\\brynjar.aune/**)",
+      "WebFetch(domain:github.com)",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": [],
+    "additionalDirectories": [
+      "C:\\c\\Users\\brynjar.aune\\Proj\\internal\\netbox-plugin"
+    ]
+  }
+}

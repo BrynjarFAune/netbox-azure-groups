@@ -1,0 +1,55 @@
+[build-system]
+requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "netbox-azure-groups"
+description = "NetBox plugin for managing Azure AD groups and memberships"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+authors = [
+    {name = "Brynjar F. Aune", email = "brynjar.aune@example.com"}
+]
+keywords = ["netbox", "azure", "active-directory", "groups", "plugin"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Framework :: Django",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "netbox>=3.0.0",
+]
+dynamic = ["version"]
+
+[project.urls]
+Homepage = "https://github.com/BrynjarFAune/netbox-azure-groups"
+Repository = "https://github.com/BrynjarFAune/netbox-azure-groups.git"
+"Bug Reports" = "https://github.com/BrynjarFAune/netbox-azure-groups/issues"
+
+[tool.setuptools_scm]
+write_to = "netbox_azure_groups/_version.py"
+
+[tool.black]
+line-length = 120
+target-version = ['py38']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  migrations
+)/
+'''
+
+[tool.ruff]
+line-length = 120
+target-version = "py38"
+select = ["E", "F", "W", "I", "N"]
+extend-exclude = ["migrations"]
