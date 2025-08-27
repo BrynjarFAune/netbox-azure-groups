@@ -7,12 +7,14 @@ from utilities.choices import ChoiceSet
 
 
 class GroupTypeChoices(ChoiceSet):
-    key = 'AzureGroup.group_type'
+    SECURITY = 'security'
+    DISTRIBUTION = 'distribution'
+    MICROSOFT365 = 'microsoft365'
     
     CHOICES = [
-        ('security', 'Security', 'blue'),
-        ('distribution', 'Distribution', 'green'),
-        ('microsoft365', 'Microsoft 365', 'purple'),
+        (SECURITY, 'Security'),
+        (DISTRIBUTION, 'Distribution'),
+        (MICROSOFT365, 'Microsoft 365'),
     ]
 
 
