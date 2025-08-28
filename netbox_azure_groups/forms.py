@@ -1,7 +1,6 @@
 from django import forms
-from django.contrib.contenttypes.models import ContentType
 from netbox.forms import NetBoxModelForm, NetBoxModelFilterSetForm
-from .models import AzureGroup, GroupTypeChoices, GroupMembership, GroupOwnership
+from .models import AzureGroup, GroupTypeChoices, ContactGroupMembership, ContactGroupOwnership, DeviceGroupMembership
 
 
 class AzureGroupForm(NetBoxModelForm):
@@ -29,77 +28,87 @@ class AzureGroupFilterForm(NetBoxModelFilterSetForm):
     is_mail_enabled = forms.BooleanField(required=False)
 
 
-class GroupMembershipForm(NetBoxModelForm):
-    content_type = forms.ModelChoiceField(
-        queryset=ContentType.objects.filter(
-            app_label__in=['tenancy', 'dcim'],
-            model__in=['contact', 'device']
-        ),
-        empty_label='Select content type'
-    )
-
+class ContactGroupMembershipForm(NetBoxModelForm):
     class Meta:
-        model = GroupMembership
-        fields = ['group', 'content_type', 'object_id', 'member_type', 'tags']
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['content_type'].widget.attrs.update({'class': 'form-control'})
+        model = ContactGroupMembership
+        fields = ['group', 'contact', 'member_type', 'tags']
 
 
-class GroupMembershipFilterForm(NetBoxModelFilterSetForm):
-    model = GroupMembership
+class ContactGroupMembershipFilterForm(NetBoxModelFilterSetForm):
+    model = ContactGroupMembership
     
     group = forms.ModelChoiceField(
         queryset=AzureGroup.objects.all(),
         required=False,
         label='Group'
     )
-    content_type = forms.ModelChoiceField(
-        queryset=ContentType.objects.filter(
-            app_label__in=['tenancy', 'dcim'],
-            model__in=['contact', 'device']
-        ),
+    contact = forms.ModelChoiceField(
+        queryset=None,  # Will be set dynamically
         required=False,
-        empty_label='All'
+        label='Contact'
     )
     member_type = forms.MultipleChoiceField(
-        choices=GroupMembership._meta.get_field('member_type').choices,
+        choices=ContactGroupMembership._meta.get_field('member_type').choices,
         required=False
     )
-
-
-class GroupOwnershipForm(NetBoxModelForm):
-    content_type = forms.ModelChoiceField(
-        queryset=ContentType.objects.filter(
-            app_label='tenancy',
-            model='contact'
-        ),
-        empty_label='Select content type'
-    )
-
-    class Meta:
-        model = GroupOwnership
-        fields = ['group', 'content_type', 'object_id', 'tags']
-
+    
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['content_type'].widget.attrs.update({'class': 'form-control'})
+        from tenancy.models import Contact
+        self.fields['contact'].queryset = Contact.objects.all()
 
 
-class GroupOwnershipFilterForm(NetBoxModelFilterSetForm):
-    model = GroupOwnership
+class DeviceGroupMembershipForm(NetBoxModelForm):
+    class Meta:
+        model = DeviceGroupMembership
+        fields = ['group', 'device', 'member_type', 'tags']
+
+
+class DeviceGroupMembershipFilterForm(NetBoxModelFilterSetForm):
+    model = DeviceGroupMembership
     
     group = forms.ModelChoiceField(
         queryset=AzureGroup.objects.all(),
         required=False,
         label='Group'
     )
-    content_type = forms.ModelChoiceField(
-        queryset=ContentType.objects.filter(
-            app_label='tenancy',
-            model='contact'
-        ),
+    device = forms.ModelChoiceField(
+        queryset=None,  # Will be set dynamically
         required=False,
-        empty_label='All'
+        label='Device'
     )
+    member_type = forms.MultipleChoiceField(
+        choices=DeviceGroupMembership._meta.get_field('member_type').choices,
+        required=False
+    )
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from dcim.models import Device
+        self.fields['device'].queryset = Device.objects.all()
+
+
+class ContactGroupOwnershipForm(NetBoxModelForm):
+    class Meta:
+        model = ContactGroupOwnership
+        fields = ['group', 'contact', 'tags']
+
+
+class ContactGroupOwnershipFilterForm(NetBoxModelFilterSetForm):
+    model = ContactGroupOwnership
+    
+    group = forms.ModelChoiceField(
+        queryset=AzureGroup.objects.all(),
+        required=False,
+        label='Group'
+    )
+    contact = forms.ModelChoiceField(
+        queryset=None,  # Will be set dynamically
+        required=False,
+        label='Contact'
+    )
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from tenancy.models import Contact
+        self.fields['contact'].queryset = Contact.objects.all()

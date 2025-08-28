@@ -6,18 +6,27 @@ from . import filtersets, forms, models, tables
 
 
 class AzureGroupView(generic.ObjectView):
-    queryset = models.AzureGroup.objects.prefetch_related('tags')
+    queryset = models.AzureGroup.objects.prefetch_related('tags', 'contact_memberships', 'device_memberships', 'contact_ownerships')
 
     def get_extra_context(self, request, instance):
-        # Temporarily disabled during dummy model refactoring
+        contact_memberships = instance.contact_memberships.select_related('contact')
+        device_memberships = instance.device_memberships.select_related('device')
+        contact_ownerships = instance.contact_ownerships.select_related('contact')
+        
+        total_memberships = contact_memberships.count() + device_memberships.count()
+        
         return {
-            'memberships': [],
-            'member_count': 0,
+            'contact_memberships': contact_memberships,
+            'device_memberships': device_memberships,
+            'contact_ownerships': contact_ownerships,
+            'total_member_count': total_memberships,
         }
 
 
 class AzureGroupListView(generic.ObjectListView):
-    queryset = models.AzureGroup.objects.prefetch_related('tags')
+    queryset = models.AzureGroup.objects.prefetch_related('tags').annotate(
+        total_member_count=Count('contact_memberships') + Count('device_memberships')
+    )
     table = tables.AzureGroupTable
     filterset = filtersets.AzureGroupFilterSet
     filterset_form = forms.AzureGroupFilterForm
@@ -32,62 +41,95 @@ class AzureGroupDeleteView(generic.ObjectDeleteView):
     queryset = models.AzureGroup.objects.all()
 
 
-class GroupMembershipView(generic.ObjectView):
-    queryset = models.GroupMembership.objects.select_related('group', 'content_type').prefetch_related('tags')
+# Contact Group Membership Views
+class ContactGroupMembershipView(generic.ObjectView):
+    queryset = models.ContactGroupMembership.objects.select_related('group', 'contact').prefetch_related('tags')
+
+class ContactGroupMembershipEditView(generic.ObjectEditView):
+    queryset = models.ContactGroupMembership.objects.all()
+    form = forms.ContactGroupMembershipForm
+
+class ContactGroupMembershipDeleteView(generic.ObjectDeleteView):
+    queryset = models.ContactGroupMembership.objects.all()
+
+class ContactGroupMembershipChangeLogView(generic.ObjectChangeLogView):
+    queryset = models.ContactGroupMembership.objects.all()
 
 
-# GroupMembershipListView removed - use group detail pages instead
+# Device Group Membership Views  
+class DeviceGroupMembershipView(generic.ObjectView):
+    queryset = models.DeviceGroupMembership.objects.select_related('group', 'device').prefetch_related('tags')
+
+class DeviceGroupMembershipEditView(generic.ObjectEditView):
+    queryset = models.DeviceGroupMembership.objects.all()
+    form = forms.DeviceGroupMembershipForm
+
+class DeviceGroupMembershipDeleteView(generic.ObjectDeleteView):
+    queryset = models.DeviceGroupMembership.objects.all()
+
+class DeviceGroupMembershipChangeLogView(generic.ObjectChangeLogView):
+    queryset = models.DeviceGroupMembership.objects.all()
 
 
-class GroupMembershipEditView(generic.ObjectEditView):
-    queryset = models.GroupMembership.objects.all()
-    form = forms.GroupMembershipForm
+# Contact Group Ownership Views
+class ContactGroupOwnershipView(generic.ObjectView):
+    queryset = models.ContactGroupOwnership.objects.select_related('group', 'contact').prefetch_related('tags')
+
+class ContactGroupOwnershipEditView(generic.ObjectEditView):
+    queryset = models.ContactGroupOwnership.objects.all()
+    form = forms.ContactGroupOwnershipForm
+
+class ContactGroupOwnershipDeleteView(generic.ObjectDeleteView):
+    queryset = models.ContactGroupOwnership.objects.all()
+
+class ContactGroupOwnershipChangeLogView(generic.ObjectChangeLogView):
+    queryset = models.ContactGroupOwnership.objects.all()
 
 
-class GroupMembershipDeleteView(generic.ObjectDeleteView):
-    queryset = models.GroupMembership.objects.all()
-
-
+# Azure Group changelog
 class AzureGroupChangeLogView(generic.ObjectChangeLogView):
     queryset = models.AzureGroup.objects.all()
 
 
-class GroupMembershipChangeLogView(generic.ObjectChangeLogView):
-    queryset = models.GroupMembership.objects.all()
-
-
-class GroupOwnershipView(generic.ObjectView):
-    queryset = models.GroupOwnership.objects.select_related('group', 'content_type').prefetch_related('tags')
-
-
-# GroupOwnershipListView removed - use group detail pages instead
-
-
-class GroupOwnershipEditView(generic.ObjectEditView):
-    queryset = models.GroupOwnership.objects.all()
-    form = forms.GroupOwnershipForm
-
-
-class GroupOwnershipDeleteView(generic.ObjectDeleteView):
-    queryset = models.GroupOwnership.objects.all()
-
-
-class GroupOwnershipChangeLogView(generic.ObjectChangeLogView):
-    queryset = models.GroupOwnership.objects.all()
-
-
 # Register model views
-# Temporarily disabled during dummy model refactoring
-# @register_model_view(models.AzureGroup, 'memberships')
-# class AzureGroupMembershipsView(generic.ObjectChildrenView):
-#     queryset = models.AzureGroup.objects.all()
-#     child_model = models.GroupMembership
-#     table = tables.GroupMembershipTable
-#     filterset = filtersets.GroupMembershipFilterSet
-#     template_name = 'netbox_azure_groups/azuregroup_memberships.html'
-#     tab = ViewTab(
-#         label='Memberships',
-#         badge=lambda obj: obj.memberships.count(),
-#         permission='netbox_azure_groups.view_groupmembership',
-#         weight=500
-#     )
+@register_model_view(models.AzureGroup, 'contact_memberships')
+class AzureGroupContactMembershipsView(generic.ObjectChildrenView):
+    queryset = models.AzureGroup.objects.all()
+    child_model = models.ContactGroupMembership
+    table = tables.ContactGroupMembershipTable
+    filterset = filtersets.ContactGroupMembershipFilterSet
+    template_name = 'netbox_azure_groups/azuregroup_contact_memberships.html'
+    tab = ViewTab(
+        label='Contact Members',
+        badge=lambda obj: obj.contact_memberships.count(),
+        permission='netbox_azure_groups.view_contactgroupmembership',
+        weight=500
+    )
+
+@register_model_view(models.AzureGroup, 'device_memberships')  
+class AzureGroupDeviceMembershipsView(generic.ObjectChildrenView):
+    queryset = models.AzureGroup.objects.all()
+    child_model = models.DeviceGroupMembership
+    table = tables.DeviceGroupMembershipTable
+    filterset = filtersets.DeviceGroupMembershipFilterSet
+    template_name = 'netbox_azure_groups/azuregroup_device_memberships.html'
+    tab = ViewTab(
+        label='Device Members',
+        badge=lambda obj: obj.device_memberships.count(),
+        permission='netbox_azure_groups.view_devicegroupmembership',
+        weight=510
+    )
+
+@register_model_view(models.AzureGroup, 'contact_ownerships')
+class AzureGroupContactOwnershipsView(generic.ObjectChildrenView):
+    queryset = models.AzureGroup.objects.all()
+    child_model = models.ContactGroupOwnership
+    table = tables.ContactGroupOwnershipTable
+    filterset = filtersets.ContactGroupOwnershipFilterSet
+    template_name = 'netbox_azure_groups/azuregroup_contact_ownerships.html'
+    tab = ViewTab(
+        label='Owners',
+        badge=lambda obj: obj.contact_ownerships.count(),
+        permission='netbox_azure_groups.view_contactgroupownership',
+        weight=520
+    )
