@@ -1,7 +1,9 @@
 from django import forms
 from django.contrib.contenttypes.models import ContentType
 from netbox.forms import NetBoxModelForm, NetBoxModelFilterSetForm
-from .models import AzureGroup, GroupMembership, GroupOwnership, GroupTypeChoices
+from .models import AzureGroup, GroupTypeChoices
+# TODO: Update for new model structure
+# from .models import ContactGroupMembership, ContactGroupOwnership, DeviceGroupMembership
 
 
 class AzureGroupForm(NetBoxModelForm):
@@ -29,6 +31,8 @@ class AzureGroupFilterForm(NetBoxModelFilterSetForm):
     is_mail_enabled = forms.BooleanField(required=False)
 
 
+# TODO: Update for new model structure
+'''
 class GroupMembershipForm(NetBoxModelForm):
     content_type = forms.ModelChoiceField(
         queryset=ContentType.objects.filter(
@@ -103,3 +107,4 @@ class GroupOwnershipFilterForm(NetBoxModelFilterSetForm):
         required=False,
         empty_label='All'
     )
+'''
