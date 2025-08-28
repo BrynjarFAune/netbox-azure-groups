@@ -11,6 +11,13 @@ class ContactAzureGroupsExtension(PluginTemplateExtension):
 
     def full_width_page(self):
         contact = self.context['object']
+        
+        # Validate this is actually a Contact object, not a Device
+        from tenancy.models import Contact
+        if not isinstance(contact, Contact):
+            logger.warning(f"ContactAzureGroupsExtension called on non-contact: {type(contact).__name__} {contact.pk} ({contact.name}) - SKIPPING")
+            return ""
+        
         contact_ct = ContentType.objects.get_for_model(contact)
         
         logger.warning(f"ContactAzureGroupsExtension.full_width_page() called for contact {contact.pk} ({contact.name})")
