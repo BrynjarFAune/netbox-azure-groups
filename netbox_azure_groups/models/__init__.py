@@ -5,26 +5,40 @@ from django.db import models
 
 # Temporary dummy classes to prevent import errors during refactoring
 # These will be replaced with the proper refactored models
-class GroupMembership(NetBoxModel):
+
+class DummyManager(models.Manager):
+    """Manager that returns empty querysets to prevent database queries"""
+    def get_queryset(self):
+        return super().get_queryset().none()
+
+class GroupMembership(models.Model):
     """Temporary dummy class - DO NOT USE"""
+    # Minimal fields to satisfy imports only
+    id = models.BigAutoField(primary_key=True)
     group = models.ForeignKey(AzureGroup, on_delete=models.CASCADE, related_name='memberships')
     member_type = models.CharField(max_length=20, choices=[('direct', 'Direct')])
     object_id = models.PositiveIntegerField(default=1)
     content_type = models.ForeignKey('contenttypes.ContentType', on_delete=models.CASCADE, null=True)
     
-    class Meta:
-        managed = False
-        db_table = 'netbox_azure_groups_groupmembership_temp'
+    objects = DummyManager()
     
-class GroupOwnership(NetBoxModel):
+    class Meta:
+        managed = False  # Don't create table
+        app_label = 'netbox_azure_groups'
+    
+class GroupOwnership(models.Model):
     """Temporary dummy class - DO NOT USE"""
+    # Minimal fields to satisfy imports only  
+    id = models.BigAutoField(primary_key=True)
     group = models.ForeignKey(AzureGroup, on_delete=models.CASCADE, related_name='ownerships')
     object_id = models.PositiveIntegerField(default=1)
     content_type = models.ForeignKey('contenttypes.ContentType', on_delete=models.CASCADE, null=True)
     
+    objects = DummyManager()
+    
     class Meta:
-        managed = False
-        db_table = 'netbox_azure_groups_groupownership_temp'
+        managed = False  # Don't create table
+        app_label = 'netbox_azure_groups'
 
 __all__ = ['AzureGroup', 'GroupTypeChoices', 'GroupMembership', 'GroupOwnership']
 
