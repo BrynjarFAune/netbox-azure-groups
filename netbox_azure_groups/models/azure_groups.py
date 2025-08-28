@@ -85,7 +85,8 @@ class GroupOwnership(NetBoxModel):
     content_type = models.ForeignKey(
         ContentType,
         on_delete=models.CASCADE,
-        limit_choices_to=models.Q(app_label='tenancy', model='contact')
+        limit_choices_to=models.Q(app_label='tenancy', model='contact'),
+        related_name='+'
     )
     object_id = models.PositiveIntegerField()
     owner = GenericForeignKey('content_type', 'object_id')
@@ -120,7 +121,8 @@ class GroupMembership(NetBoxModel):
         limit_choices_to=models.Q(
             models.Q(app_label='tenancy', model='contact') |
             models.Q(app_label='dcim', model='device')
-        )
+        ),
+        related_name='+'
     )
     object_id = models.PositiveIntegerField()
     member = GenericForeignKey('content_type', 'object_id')
