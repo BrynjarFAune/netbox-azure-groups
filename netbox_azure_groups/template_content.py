@@ -59,4 +59,6 @@ class DeviceAzureGroupsExtension(PluginTemplateExtension):
         })
 
 
-template_extensions = [ContactAzureGroupsExtension, DeviceAzureGroupsExtension]
+# Temporarily disable template extensions during refactoring
+template_extensions = []
+# template_extensions = [ContactAzureGroupsExtension, DeviceAzureGroupsExtension]
