@@ -1,0 +1,90 @@
+{% extends 'generic/object.html' %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col col-md-6">
+        <div class="card">
+            <h5 class="card-header">Group Membership</h5>
+            <div class="card-body">
+                <table class="table table-hover attr-table">
+                    <tr>
+                        <th scope="row">Group</th>
+                        <td>
+                            <a href="{{ object.group.get_absolute_url }}">{{ object.group.name }}</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Member</th>
+                        <td>
+                            {% if object.member %}
+                                {% if object.member.get_absolute_url %}
+                                    <a href="{{ object.member.get_absolute_url }}">{{ object.member }}</a>
+                                {% else %}
+                                    {{ object.member }}
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">Unknown</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Member Type</th>
+                        <td>
+                            <span class="badge bg-secondary">{{ object.content_type.model|title }}</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Membership Type</th>
+                        <td>
+                            <span class="badge bg-info">{{ object.get_member_type_display }}</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Created</th>
+                        <td>{{ object.created|default:"Unknown" }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Last Updated</th>
+                        <td>{{ object.last_updated|default:"Unknown" }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col col-md-6">
+        <div class="card">
+            <h5 class="card-header">Group Details</h5>
+            <div class="card-body">
+                <table class="table table-hover attr-table">
+                    <tr>
+                        <th scope="row">Group Type</th>
+                        <td>
+                            <span class="badge bg-secondary">{{ object.group.get_group_type_display }}</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Security Enabled</th>
+                        <td>
+                            {% if object.group.is_security_enabled %}
+                                <i class="mdi mdi-check-circle text-success"></i> Yes
+                            {% else %}
+                                <i class="mdi mdi-close-circle text-danger"></i> No
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Mail Enabled</th>
+                        <td>
+                            {% if object.group.is_mail_enabled %}
+                                <i class="mdi mdi-check-circle text-success"></i> Yes
+                            {% else %}
+                                <i class="mdi mdi-close-circle text-danger"></i> No
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
