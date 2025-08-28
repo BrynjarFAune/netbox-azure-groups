@@ -48,4 +48,6 @@ class DeviceAzureGroupsExtension(PluginTemplateExtension):
         })
 
 
-template_extensions = [ContactAzureGroupsExtension, DeviceAzureGroupsExtension]
+# Temporarily disable template extensions to see NetBox automatic display
+# template_extensions = [ContactAzureGroupsExtension, DeviceAzureGroupsExtension]
+template_extensions = []
