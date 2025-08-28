@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.contenttypes.models import ContentType
 from netbox.forms import NetBoxModelForm, NetBoxModelFilterSetForm
-from .models import AzureGroup, GroupMembership, GroupTypeChoices
+from .models import AzureGroup, GroupMembership, GroupOwnership, GroupTypeChoices
 
 
 class AzureGroupForm(NetBoxModelForm):
@@ -66,4 +66,40 @@ class GroupMembershipFilterForm(NetBoxModelFilterSetForm):
     member_type = forms.MultipleChoiceField(
         choices=GroupMembership._meta.get_field('member_type').choices,
         required=False
+    )
+
+
+class GroupOwnershipForm(NetBoxModelForm):
+    content_type = forms.ModelChoiceField(
+        queryset=ContentType.objects.filter(
+            app_label='tenancy',
+            model='contact'
+        ),
+        empty_label='Select content type'
+    )
+
+    class Meta:
+        model = GroupOwnership
+        fields = ['group', 'content_type', 'object_id', 'tags']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['content_type'].widget.attrs.update({'class': 'form-control'})
+
+
+class GroupOwnershipFilterForm(NetBoxModelFilterSetForm):
+    model = GroupOwnership
+    
+    group = forms.ModelChoiceField(
+        queryset=AzureGroup.objects.all(),
+        required=False,
+        label='Group'
+    )
+    content_type = forms.ModelChoiceField(
+        queryset=ContentType.objects.filter(
+            app_label='tenancy',
+            model='contact'
+        ),
+        required=False,
+        empty_label='All'
     )

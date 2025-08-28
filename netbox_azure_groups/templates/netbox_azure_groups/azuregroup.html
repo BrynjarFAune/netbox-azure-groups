@@ -87,9 +87,50 @@
 </div>
 
 <div class="row">
-    <div class="col-md-12">
+    <div class="col-md-6">
         <div class="card">
-            <h5 class="card-header">Members</h5>
+            <h5 class="card-header">
+                <i class="mdi mdi-account-star text-warning"></i> Owners
+            </h5>
+            <div class="card-body">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Owner</th>
+                            <th>Type</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ownership in object.ownerships.all %}
+                        <tr>
+                            <td>
+                                {% if ownership.owner %}
+                                    {% if ownership.owner.get_absolute_url %}
+                                        <a href="{{ ownership.owner.get_absolute_url }}">{{ ownership.owner }}</a>
+                                    {% else %}
+                                        {{ ownership.owner }}
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-muted">Unknown</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ ownership.content_type.model|title }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="2" class="text-muted">No owners assigned</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <h5 class="card-header">
+                <i class="mdi mdi-account-group text-primary"></i> Members
+            </h5>
             <div class="card-body">
                 <table class="table table-hover">
                     <thead>

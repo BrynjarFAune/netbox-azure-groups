@@ -62,6 +62,30 @@ class GroupMembershipChangeLogView(generic.ObjectChangeLogView):
     queryset = models.GroupMembership.objects.all()
 
 
+class GroupOwnershipView(generic.ObjectView):
+    queryset = models.GroupOwnership.objects.select_related('group', 'content_type').prefetch_related('tags', 'owner')
+
+
+class GroupOwnershipListView(generic.ObjectListView):
+    queryset = models.GroupOwnership.objects.select_related('group', 'content_type').prefetch_related('tags', 'owner')
+    table = tables.GroupOwnershipTable
+    filterset = filtersets.GroupOwnershipFilterSet
+    filterset_form = forms.GroupOwnershipFilterForm
+
+
+class GroupOwnershipEditView(generic.ObjectEditView):
+    queryset = models.GroupOwnership.objects.all()
+    form = forms.GroupOwnershipForm
+
+
+class GroupOwnershipDeleteView(generic.ObjectDeleteView):
+    queryset = models.GroupOwnership.objects.all()
+
+
+class GroupOwnershipChangeLogView(generic.ObjectChangeLogView):
+    queryset = models.GroupOwnership.objects.all()
+
+
 # Register model views
 @register_model_view(models.AzureGroup, 'memberships')
 class AzureGroupMembershipsView(generic.ObjectChildrenView):

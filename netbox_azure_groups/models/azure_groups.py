@@ -71,6 +71,38 @@ class AzureGroup(NetBoxModel):
         return reverse('plugins:netbox_azure_groups:azuregroup', args=[self.pk])
 
 
+class GroupOwnership(NetBoxModel):
+    """
+    Represents ownership of an Azure AD group by a Contact
+    """
+    group = models.ForeignKey(
+        AzureGroup,
+        on_delete=models.CASCADE,
+        related_name='ownerships'
+    )
+    
+    # Generic foreign key to support Contact (and potentially other models)
+    content_type = models.ForeignKey(
+        ContentType,
+        on_delete=models.CASCADE,
+        limit_choices_to=models.Q(app_label='tenancy', model='contact')
+    )
+    object_id = models.PositiveIntegerField()
+    owner = GenericForeignKey('content_type', 'object_id')
+    
+    class Meta:
+        ordering = ['group__name']
+        verbose_name = 'Group Ownership'
+        verbose_name_plural = 'Group Ownerships'
+        unique_together = ['group', 'content_type', 'object_id']
+
+    def __str__(self) -> str:
+        return f'{self.group.name} - Owner: {self.owner}'
+
+    def get_absolute_url(self) -> str:
+        return reverse('plugins:netbox_azure_groups:groupownership', args=[self.pk])
+
+
 class GroupMembership(NetBoxModel):
     """
     Represents membership of a Contact or Device in an Azure AD group
