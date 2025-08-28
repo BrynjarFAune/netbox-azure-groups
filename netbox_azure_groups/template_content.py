@@ -6,7 +6,7 @@ from .models import GroupMembership, GroupOwnership
 class ContactAzureGroupsExtension(PluginTemplateExtension):
     model = 'tenancy.contact'
 
-    def right_page(self):
+    def full_width_page(self):
         contact = self.context['object']
         contact_ct = ContentType.objects.get_for_model(contact)
         
@@ -32,7 +32,7 @@ class ContactAzureGroupsExtension(PluginTemplateExtension):
 class DeviceAzureGroupsExtension(PluginTemplateExtension):
     model = 'dcim.device'
 
-    def right_page(self):
+    def full_width_page(self):
         device = self.context['object']
         device_ct = ContentType.objects.get_for_model(device)
         
