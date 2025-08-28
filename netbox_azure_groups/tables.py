@@ -30,9 +30,8 @@ class AzureGroupTable(NetBoxTable):
 
 class GroupMembershipTable(NetBoxTable):
     group = tables.Column(linkify=True)
-    member = tables.Column(
-        accessor='member',
-        verbose_name='Member',
+    object_id = tables.Column(
+        verbose_name='Object ID',
         orderable=False
     )
     content_type = tables.Column(verbose_name='Type')
@@ -41,7 +40,7 @@ class GroupMembershipTable(NetBoxTable):
     class Meta(NetBoxTable.Meta):
         model = GroupMembership
         fields = (
-            'pk', 'id', 'group', 'member', 'content_type',
+            'pk', 'id', 'group', 'object_id', 'content_type',
             'member_type', 'created', 'last_updated', 'actions'
         )
-        default_columns = ('pk', 'group', 'member', 'content_type', 'member_type')
+        default_columns = ('pk', 'group', 'object_id', 'content_type', 'member_type')

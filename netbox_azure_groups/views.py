@@ -9,7 +9,7 @@ class AzureGroupView(generic.ObjectView):
     queryset = models.AzureGroup.objects.prefetch_related('tags', 'memberships')
 
     def get_extra_context(self, request, instance):
-        memberships = instance.memberships.select_related('content_type').prefetch_related('member')
+        memberships = instance.memberships.select_related('content_type')
         return {
             'memberships': memberships,
             'member_count': memberships.count(),
@@ -35,7 +35,7 @@ class AzureGroupDeleteView(generic.ObjectDeleteView):
 
 
 class GroupMembershipView(generic.ObjectView):
-    queryset = models.GroupMembership.objects.select_related('group', 'content_type').prefetch_related('tags', 'member')
+    queryset = models.GroupMembership.objects.select_related('group', 'content_type').prefetch_related('tags')
 
 
 # GroupMembershipListView removed - use group detail pages instead
@@ -59,7 +59,7 @@ class GroupMembershipChangeLogView(generic.ObjectChangeLogView):
 
 
 class GroupOwnershipView(generic.ObjectView):
-    queryset = models.GroupOwnership.objects.select_related('group', 'content_type').prefetch_related('tags', 'owner')
+    queryset = models.GroupOwnership.objects.select_related('group', 'content_type').prefetch_related('tags')
 
 
 # GroupOwnershipListView removed - use group detail pages instead

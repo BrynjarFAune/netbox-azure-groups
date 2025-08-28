@@ -9,6 +9,8 @@ class GroupMembership(NetBoxModel):
     """Temporary dummy class - DO NOT USE"""
     group = models.ForeignKey(AzureGroup, on_delete=models.CASCADE, related_name='memberships')
     member_type = models.CharField(max_length=20, choices=[('direct', 'Direct')])
+    object_id = models.PositiveIntegerField(default=1)
+    content_type = models.ForeignKey('contenttypes.ContentType', on_delete=models.CASCADE, null=True)
     
     class Meta:
         managed = False
@@ -17,6 +19,8 @@ class GroupMembership(NetBoxModel):
 class GroupOwnership(NetBoxModel):
     """Temporary dummy class - DO NOT USE"""
     group = models.ForeignKey(AzureGroup, on_delete=models.CASCADE, related_name='ownerships')
+    object_id = models.PositiveIntegerField(default=1)
+    content_type = models.ForeignKey('contenttypes.ContentType', on_delete=models.CASCADE, null=True)
     
     class Meta:
         managed = False
