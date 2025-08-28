@@ -24,9 +24,7 @@ class AzureGroupView(generic.ObjectView):
 
 
 class AzureGroupListView(generic.ObjectListView):
-    queryset = models.AzureGroup.objects.prefetch_related('tags').annotate(
-        total_member_count=Count('contact_memberships') + Count('device_memberships')
-    )
+    queryset = models.AzureGroup.objects.prefetch_related('tags')
     table = tables.AzureGroupTable
     filterset = filtersets.AzureGroupFilterSet
     filterset_form = forms.AzureGroupFilterForm

@@ -65,7 +65,7 @@
                     <tr>
                         <th scope="row">Member Count</th>
                         <td>
-                            <span class="badge bg-primary">{{ object.memberships.count }}</span>
+                            <span class="badge bg-primary">{{ total_member_count }}</span>
                         </td>
                     </tr>
                 </table>
@@ -101,20 +101,12 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for ownership in object.ownerships.all %}
+                        {% for ownership in contact_ownerships %}
                         <tr>
                             <td>
-                                {% if ownership.owner %}
-                                    {% if ownership.owner.get_absolute_url %}
-                                        <a href="{{ ownership.owner.get_absolute_url }}">{{ ownership.owner }}</a>
-                                    {% else %}
-                                        {{ ownership.owner }}
-                                    {% endif %}
-                                {% else %}
-                                    <span class="text-muted">Unknown</span>
-                                {% endif %}
+                                <a href="{{ ownership.contact.get_absolute_url }}">{{ ownership.contact }}</a>
                             </td>
-                            <td>{{ ownership.content_type.model|title }}</td>
+                            <td>Contact</td>
                         </tr>
                         {% empty %}
                         <tr>
@@ -141,29 +133,33 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for membership in object.memberships.all %}
+                        {% for membership in contact_memberships %}
                         <tr>
                             <td>
-                                {% if membership.member %}
-                                    {% if membership.member.get_absolute_url %}
-                                        <a href="{{ membership.member.get_absolute_url }}">{{ membership.member }}</a>
-                                    {% else %}
-                                        {{ membership.member }}
-                                    {% endif %}
-                                {% else %}
-                                    <span class="text-muted">Unknown</span>
-                                {% endif %}
+                                <a href="{{ membership.contact.get_absolute_url }}">{{ membership.contact }}</a>
                             </td>
-                            <td>{{ membership.content_type.model|title }}</td>
+                            <td>Contact</td>
                             <td>
                                 <span class="badge bg-info">{{ membership.get_member_type_display }}</span>
                             </td>
                         </tr>
-                        {% empty %}
+                        {% endfor %}
+                        {% for membership in device_memberships %}
+                        <tr>
+                            <td>
+                                <a href="{{ membership.device.get_absolute_url }}">{{ membership.device }}</a>
+                            </td>
+                            <td>Device</td>
+                            <td>
+                                <span class="badge bg-info">{{ membership.get_member_type_display }}</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        {% if not contact_memberships and not device_memberships %}
                         <tr>
                             <td colspan="3" class="text-muted">No members</td>
                         </tr>
-                        {% endfor %}
+                        {% endif %}
                     </tbody>
                 </table>
             </div>
