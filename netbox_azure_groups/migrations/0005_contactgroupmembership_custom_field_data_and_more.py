@@ -43,14 +43,4 @@ class Migration(migrations.Migration):
             name='tags',
             field=taggit.managers.TaggableManager(through='extras.TaggedItem', to='extras.Tag', verbose_name='Tags'),
         ),
-        migrations.AlterField(
-            model_name='azuregroup',
-            name='custom_field_data',
-            field=models.JSONField(blank=True, default=dict),
-        ),
-        migrations.AlterField(
-            model_name='azuregroup',
-            name='tags',
-            field=taggit.managers.TaggableManager(through='extras.TaggedItem', to='extras.Tag', verbose_name='Tags'),
-        ),
     ]
