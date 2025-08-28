@@ -6,10 +6,27 @@ from django.db import models
 # Temporary dummy classes to prevent import errors during refactoring
 # These will be replaced with the proper refactored models
 
+from django.db.models.query import EmptyQuerySet
+
+class DummyQuerySet(models.QuerySet):
+    """QuerySet that never hits the database"""
+    def __init__(self, model=None, query=None, using=None, hints=None):
+        super().__init__(model, query, using, hints)
+        self._result_cache = []
+        
+    def _fetch_all(self):
+        self._result_cache = []
+        
+    def count(self):
+        return 0
+        
+    def exists(self):
+        return False
+
 class DummyManager(models.Manager):
     """Manager that returns empty querysets to prevent database queries"""
     def get_queryset(self):
-        return super().get_queryset().none()
+        return DummyQuerySet(self.model)
 
 class GroupMembership(NetBoxModel):
     """Temporary dummy class - DO NOT USE"""

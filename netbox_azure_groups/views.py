@@ -6,20 +6,18 @@ from . import filtersets, forms, models, tables
 
 
 class AzureGroupView(generic.ObjectView):
-    queryset = models.AzureGroup.objects.prefetch_related('tags', 'memberships')
+    queryset = models.AzureGroup.objects.prefetch_related('tags')
 
     def get_extra_context(self, request, instance):
-        memberships = instance.memberships.select_related('content_type')
+        # Temporarily disabled during dummy model refactoring
         return {
-            'memberships': memberships,
-            'member_count': memberships.count(),
+            'memberships': [],
+            'member_count': 0,
         }
 
 
 class AzureGroupListView(generic.ObjectListView):
-    queryset = models.AzureGroup.objects.prefetch_related('tags').annotate(
-        member_count=Count('memberships')
-    )
+    queryset = models.AzureGroup.objects.prefetch_related('tags')
     table = tables.AzureGroupTable
     filterset = filtersets.AzureGroupFilterSet
     filterset_form = forms.AzureGroupFilterForm
@@ -79,16 +77,17 @@ class GroupOwnershipChangeLogView(generic.ObjectChangeLogView):
 
 
 # Register model views
-@register_model_view(models.AzureGroup, 'memberships')
-class AzureGroupMembershipsView(generic.ObjectChildrenView):
-    queryset = models.AzureGroup.objects.all()
-    child_model = models.GroupMembership
-    table = tables.GroupMembershipTable
-    filterset = filtersets.GroupMembershipFilterSet
-    template_name = 'netbox_azure_groups/azuregroup_memberships.html'
-    tab = ViewTab(
-        label='Memberships',
-        badge=lambda obj: obj.memberships.count(),
-        permission='netbox_azure_groups.view_groupmembership',
-        weight=500
-    )
+# Temporarily disabled during dummy model refactoring
+# @register_model_view(models.AzureGroup, 'memberships')
+# class AzureGroupMembershipsView(generic.ObjectChildrenView):
+#     queryset = models.AzureGroup.objects.all()
+#     child_model = models.GroupMembership
+#     table = tables.GroupMembershipTable
+#     filterset = filtersets.GroupMembershipFilterSet
+#     template_name = 'netbox_azure_groups/azuregroup_memberships.html'
+#     tab = ViewTab(
+#         label='Memberships',
+#         badge=lambda obj: obj.memberships.count(),
+#         permission='netbox_azure_groups.view_groupmembership',
+#         weight=500
+#     )

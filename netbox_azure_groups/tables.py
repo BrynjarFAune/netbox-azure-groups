@@ -6,11 +6,12 @@ from .models import AzureGroup, GroupMembership
 class AzureGroupTable(NetBoxTable):
     name = tables.Column(linkify=True)
     group_type = ChoiceFieldColumn()
-    member_count = tables.Column(
-        verbose_name='Members',
-        accessor='member_count',
-        orderable=False
-    )
+    # Temporarily disabled during dummy model refactoring
+    # member_count = tables.Column(
+    #     verbose_name='Members',
+    #     accessor='member_count',
+    #     orderable=False
+    # )
     is_security_enabled = tables.BooleanColumn(verbose_name='Security')
     is_mail_enabled = tables.BooleanColumn(verbose_name='Mail')
 
@@ -19,11 +20,11 @@ class AzureGroupTable(NetBoxTable):
         fields = (
             'pk', 'id', 'name', 'description', 'object_id', 'mail',
             'group_type', 'is_security_enabled', 'is_mail_enabled',
-            'member_count', 'created_datetime', 'created', 'last_updated',
+            'created_datetime', 'created', 'last_updated',
             'actions'
         )
         default_columns = (
-            'pk', 'name', 'group_type', 'member_count',
+            'pk', 'name', 'group_type',
             'is_security_enabled', 'is_mail_enabled'
         )
 
