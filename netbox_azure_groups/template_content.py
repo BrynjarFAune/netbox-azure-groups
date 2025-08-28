@@ -41,6 +41,13 @@ class DeviceAzureGroupsExtension(PluginTemplateExtension):
 
     def full_width_page(self):
         device = self.context['object']
+        
+        # Validate this is actually a Device object, not a Contact
+        from dcim.models import Device
+        if not isinstance(device, Device):
+            logger.warning(f"DeviceAzureGroupsExtension called on non-device: {type(device).__name__} {device.pk} ({device.name}) - SKIPPING")
+            return ""
+        
         device_ct = ContentType.objects.get_for_model(device)
         
         logger.warning(f"DeviceAzureGroupsExtension.full_width_page() called for device {device.pk} ({device.name})")
