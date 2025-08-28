@@ -1,6 +1,7 @@
 import logging
 from netbox.plugins import PluginTemplateExtension
-from .models import ContactGroupMembership, ContactGroupOwnership, DeviceGroupMembership
+# Temporarily disabled during refactoring
+# from .models import ContactGroupMembership, ContactGroupOwnership, DeviceGroupMembership
 
 logger = logging.getLogger(__name__)
 
