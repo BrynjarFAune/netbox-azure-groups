@@ -1,3 +1,15 @@
-from .azure_groups import AzureGroup, GroupMembership, GroupOwnership, GroupTypeChoices
+from .azure_groups import (
+    AzureGroup, 
+    ContactGroupMembership, 
+    ContactGroupOwnership, 
+    DeviceGroupMembership,
+    GroupTypeChoices
+)
 
-__all__ = ['AzureGroup', 'GroupMembership', 'GroupOwnership', 'GroupTypeChoices']
+__all__ = [
+    'AzureGroup', 
+    'ContactGroupMembership', 
+    'ContactGroupOwnership', 
+    'DeviceGroupMembership',
+    'GroupTypeChoices'
+]
