@@ -1,0 +1,47 @@
+{% if group_ownerships or group_memberships %}
+<div class="card">
+    <h5 class="card-header">
+        <i class="mdi mdi-account-group text-primary"></i> Azure AD Groups
+    </h5>
+    <div class="card-body">
+        {% if group_ownerships %}
+        <div class="mb-3">
+            <h6 class="text-warning">
+                <i class="mdi mdi-account-star"></i> Group Owner
+            </h6>
+            <ul class="list-unstyled mb-0">
+                {% for ownership in group_ownerships %}
+                <li>
+                    <a href="{{ ownership.group.get_absolute_url }}" class="text-warning">
+                        <i class="mdi mdi-account-star"></i> {{ ownership.group.name }}
+                    </a>
+                    <small class="text-muted"> - {{ ownership.group.get_group_type_display }}</small>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+        
+        {% if group_memberships %}
+        <div>
+            <h6 class="text-info">
+                <i class="mdi mdi-account-group"></i> Group Member
+            </h6>
+            <ul class="list-unstyled mb-0">
+                {% for membership in group_memberships %}
+                <li>
+                    <a href="{{ membership.group.get_absolute_url }}" class="text-info">
+                        <i class="mdi mdi-account-group"></i> {{ membership.group.name }}
+                    </a>
+                    <small class="text-muted"> - {{ membership.group.get_group_type_display }}</small>
+                    {% if membership.member_type == 'nested' %}
+                    <span class="badge bg-secondary ms-1">nested</span>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}

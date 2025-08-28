@@ -38,11 +38,7 @@ class GroupMembershipView(generic.ObjectView):
     queryset = models.GroupMembership.objects.select_related('group', 'content_type').prefetch_related('tags', 'member')
 
 
-class GroupMembershipListView(generic.ObjectListView):
-    queryset = models.GroupMembership.objects.select_related('group', 'content_type').prefetch_related('tags', 'member')
-    table = tables.GroupMembershipTable
-    filterset = filtersets.GroupMembershipFilterSet
-    filterset_form = forms.GroupMembershipFilterForm
+# GroupMembershipListView removed - use group detail pages instead
 
 
 class GroupMembershipEditView(generic.ObjectEditView):
@@ -66,11 +62,7 @@ class GroupOwnershipView(generic.ObjectView):
     queryset = models.GroupOwnership.objects.select_related('group', 'content_type').prefetch_related('tags', 'owner')
 
 
-class GroupOwnershipListView(generic.ObjectListView):
-    queryset = models.GroupOwnership.objects.select_related('group', 'content_type').prefetch_related('tags', 'owner')
-    table = tables.GroupOwnershipTable
-    filterset = filtersets.GroupOwnershipFilterSet
-    filterset_form = forms.GroupOwnershipFilterForm
+# GroupOwnershipListView removed - use group detail pages instead
 
 
 class GroupOwnershipEditView(generic.ObjectEditView):
