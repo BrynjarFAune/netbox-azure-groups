@@ -48,4 +48,6 @@ class DeviceAzureGroupsExtension(PluginTemplateExtension):
         })
 
 
-template_extensions = [ContactAzureGroupsExtension, DeviceAzureGroupsExtension]
+# Temporarily disable to eliminate duplicate auto-display
+template_extensions = []
+# template_extensions = [ContactAzureGroupsExtension, DeviceAzureGroupsExtension]
