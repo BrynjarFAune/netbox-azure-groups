@@ -1,9 +1,7 @@
 import django_filters
 from django.contrib.contenttypes.models import ContentType
 from netbox.filtersets import NetBoxModelFilterSet
-from .models import AzureGroup
-# TODO: Update for new model structure
-# from .models import ContactGroupMembership, DeviceGroupMembership
+from .models import AzureGroup, GroupMembership
 
 
 class AzureGroupFilterSet(NetBoxModelFilterSet):
@@ -22,9 +20,15 @@ class AzureGroupFilterSet(NetBoxModelFilterSet):
         ]
 
 
-# TODO: Update for new model structure
-# class ContactGroupMembershipFilterSet(NetBoxModelFilterSet):
-#     pass
-# 
-# class DeviceGroupMembershipFilterSet(NetBoxModelFilterSet):
-#     pass
+class GroupMembershipFilterSet(NetBoxModelFilterSet):
+    group_id = django_filters.ModelMultipleChoiceFilter(
+        queryset=AzureGroup.objects.all(),
+        label='Group'
+    )
+    member_type = django_filters.MultipleChoiceFilter(
+        choices=[('direct', 'Direct'), ('nested', 'Nested')],
+    )
+
+    class Meta:
+        model = GroupMembership
+        fields = ['id', 'group_id', 'member_type']
