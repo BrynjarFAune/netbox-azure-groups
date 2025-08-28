@@ -1,15 +1,26 @@
 # Temporarily simplified imports during refactoring 
 from .azure_groups import AzureGroup, GroupTypeChoices
+from netbox.models import NetBoxModel
+from django.db import models
 
 # Temporary dummy classes to prevent import errors during refactoring
 # These will be replaced with the proper refactored models
-class GroupMembership:
+class GroupMembership(NetBoxModel):
     """Temporary dummy class - DO NOT USE"""
-    _meta = type('Meta', (), {'get_field': lambda self, name: type('Field', (), {'choices': []})()})()
+    group = models.ForeignKey(AzureGroup, on_delete=models.CASCADE)
+    member_type = models.CharField(max_length=20, choices=[('direct', 'Direct')])
     
-class GroupOwnership:
+    class Meta:
+        managed = False
+        db_table = 'netbox_azure_groups_groupmembership_temp'
+    
+class GroupOwnership(NetBoxModel):
     """Temporary dummy class - DO NOT USE"""
-    _meta = type('Meta', (), {'get_field': lambda self, name: type('Field', (), {'choices': []})()})()
+    group = models.ForeignKey(AzureGroup, on_delete=models.CASCADE)
+    
+    class Meta:
+        managed = False
+        db_table = 'netbox_azure_groups_groupownership_temp'
 
 __all__ = ['AzureGroup', 'GroupTypeChoices', 'GroupMembership', 'GroupOwnership']
 
