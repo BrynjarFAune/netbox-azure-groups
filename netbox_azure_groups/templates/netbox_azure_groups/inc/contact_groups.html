@@ -6,40 +6,32 @@
     <div class="card-body">
         {% if group_ownerships %}
         <div class="mb-3">
-            <h6 class="text-warning">
-                <i class="mdi mdi-account-star"></i> Group Owner
-            </h6>
-            <ul class="list-unstyled mb-0">
+            <strong class="text-warning">
+                <i class="mdi mdi-account-star"></i> Owned Groups:
+            </strong>
+            <div class="d-flex flex-wrap gap-1 mt-1">
                 {% for ownership in group_ownerships %}
-                <li>
-                    <a href="{{ ownership.group.get_absolute_url }}" class="text-warning">
-                        <i class="mdi mdi-account-star"></i> {{ ownership.group.name }}
-                    </a>
-                    <small class="text-muted"> - {{ ownership.group.get_group_type_display }}</small>
-                </li>
+                <a href="{{ ownership.group.get_absolute_url }}" class="badge bg-warning text-dark">
+                    <i class="mdi mdi-account-star"></i> {{ ownership.group.name }}
+                </a>
                 {% endfor %}
-            </ul>
+            </div>
         </div>
         {% endif %}
         
         {% if group_memberships %}
         <div>
-            <h6 class="text-info">
-                <i class="mdi mdi-account-group"></i> Group Member
-            </h6>
-            <ul class="list-unstyled mb-0">
+            <strong class="text-info">
+                <i class="mdi mdi-account-group"></i> Member Of:
+            </strong>
+            <div class="d-flex flex-wrap gap-1 mt-1">
                 {% for membership in group_memberships %}
-                <li>
-                    <a href="{{ membership.group.get_absolute_url }}" class="text-info">
-                        <i class="mdi mdi-account-group"></i> {{ membership.group.name }}
-                    </a>
-                    <small class="text-muted"> - {{ membership.group.get_group_type_display }}</small>
-                    {% if membership.member_type == 'nested' %}
-                    <span class="badge bg-secondary ms-1">nested</span>
-                    {% endif %}
-                </li>
+                <a href="{{ membership.group.get_absolute_url }}" class="badge bg-info">
+                    <i class="mdi mdi-account-group"></i> {{ membership.group.name }}
+                    {% if membership.member_type == 'nested' %}<small>(nested)</small>{% endif %}
+                </a>
                 {% endfor %}
-            </ul>
+            </div>
         </div>
         {% endif %}
     </div>
