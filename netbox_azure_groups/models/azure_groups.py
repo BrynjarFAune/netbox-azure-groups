@@ -68,7 +68,7 @@ class AzureGroup(NetBoxModel):
         return self.name
 
     def get_absolute_url(self) -> str:
-        return reverse('plugins:netbox_azure_groups:azuregroup_detail', args=[self.pk])
+        return reverse('plugins:netbox_azure_groups:azuregroup', args=[self.pk])
 
 
 class GroupMembership(NetBoxModel):
@@ -114,4 +114,4 @@ class GroupMembership(NetBoxModel):
         return f'{self.group.name} - {self.member}'
 
     def get_absolute_url(self) -> str:
-        return reverse('plugins:netbox_azure_groups:groupmembership_detail', args=[self.pk])
+        return reverse('plugins:netbox_azure_groups:groupmembership', args=[self.pk])

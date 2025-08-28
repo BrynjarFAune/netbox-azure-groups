@@ -54,6 +54,14 @@ class GroupMembershipDeleteView(generic.ObjectDeleteView):
     queryset = models.GroupMembership.objects.all()
 
 
+class AzureGroupChangeLogView(generic.ObjectChangeLogView):
+    queryset = models.AzureGroup.objects.all()
+
+
+class GroupMembershipChangeLogView(generic.ObjectChangeLogView):
+    queryset = models.GroupMembership.objects.all()
+
+
 # Register model views
 @register_model_view(models.AzureGroup, 'memberships')
 class AzureGroupMembershipsView(generic.ObjectChildrenView):
@@ -61,7 +69,7 @@ class AzureGroupMembershipsView(generic.ObjectChildrenView):
     child_model = models.GroupMembership
     table = tables.GroupMembershipTable
     filterset = filtersets.GroupMembershipFilterSet
-    template_name = 'netbox_azure_groups/azuregroup/memberships.html'
+    template_name = 'netbox_azure_groups/azuregroup_memberships.html'
     tab = ViewTab(
         label='Memberships',
         badge=lambda obj: obj.memberships.count(),
