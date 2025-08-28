@@ -1,12 +1,17 @@
 from django.db.models import Count
 from netbox.api.viewsets import NetBoxModelViewSet
-from ..models import AzureGroup, GroupMembership
-from .serializers import AzureGroupSerializer, GroupMembershipSerializer
+from ..models import AzureGroup, ContactGroupMembership, ContactGroupOwnership, DeviceGroupMembership
+from .serializers import (
+    AzureGroupSerializer, 
+    ContactGroupMembershipSerializer, 
+    ContactGroupOwnershipSerializer, 
+    DeviceGroupMembershipSerializer
+)
 
 
 class AzureGroupViewSet(NetBoxModelViewSet):
     queryset = AzureGroup.objects.prefetch_related('tags').annotate(
-        member_count=Count('memberships')
+        total_member_count=Count('contact_memberships') + Count('device_memberships')
     )
     serializer_class = AzureGroupSerializer
     filterset_fields = [
@@ -15,9 +20,25 @@ class AzureGroupViewSet(NetBoxModelViewSet):
     ]
 
 
-class GroupMembershipViewSet(NetBoxModelViewSet):
-    queryset = GroupMembership.objects.prefetch_related('tags', 'group')
-    serializer_class = GroupMembershipSerializer
+class ContactGroupMembershipViewSet(NetBoxModelViewSet):
+    queryset = ContactGroupMembership.objects.prefetch_related('tags', 'group', 'contact')
+    serializer_class = ContactGroupMembershipSerializer
     filterset_fields = [
-        'group_id', 'content_type', 'object_id', 'member_type'
+        'group_id', 'contact_id', 'member_type'
+    ]
+
+
+class ContactGroupOwnershipViewSet(NetBoxModelViewSet):
+    queryset = ContactGroupOwnership.objects.prefetch_related('tags', 'group', 'contact')
+    serializer_class = ContactGroupOwnershipSerializer
+    filterset_fields = [
+        'group_id', 'contact_id'
+    ]
+
+
+class DeviceGroupMembershipViewSet(NetBoxModelViewSet):
+    queryset = DeviceGroupMembership.objects.prefetch_related('tags', 'group', 'device')
+    serializer_class = DeviceGroupMembershipSerializer
+    filterset_fields = [
+        'group_id', 'device_id', 'member_type'
     ]
