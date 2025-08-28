@@ -93,8 +93,8 @@ class GroupOwnership(NetBoxModel):
     
     class Meta:
         ordering = ['group__name']
-        verbose_name = 'Group Ownership'
-        verbose_name_plural = 'Group Ownerships'
+        verbose_name = ''  # Hide from NetBox auto-display
+        verbose_name_plural = ''  # Hide from NetBox auto-display
         unique_together = ['group', 'content_type', 'object_id']
 
     def __str__(self) -> str:
@@ -140,8 +140,8 @@ class GroupMembership(NetBoxModel):
     
     class Meta:
         ordering = ['group__name']
-        verbose_name = 'Group Membership'
-        verbose_name_plural = 'Group Memberships'
+        verbose_name = ''  # Hide from NetBox auto-display
+        verbose_name_plural = ''  # Hide from NetBox auto-display
         unique_together = ['group', 'content_type', 'object_id']
 
     def __str__(self) -> str:
