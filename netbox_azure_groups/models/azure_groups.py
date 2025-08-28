@@ -1,5 +1,3 @@
-from django.contrib.contenttypes.fields import GenericForeignKey
-from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.urls import reverse
 from netbox.models import NetBoxModel
@@ -71,61 +69,48 @@ class AzureGroup(NetBoxModel):
         return reverse('plugins:netbox_azure_groups:azuregroup', args=[self.pk])
 
 
-class GroupOwnership(NetBoxModel):
+class ContactGroupOwnership(NetBoxModel):
     """
     Represents ownership of an Azure AD group by a Contact
     """
     group = models.ForeignKey(
         AzureGroup,
         on_delete=models.CASCADE,
-        related_name='ownerships'
+        related_name='contact_ownerships'
     )
-    
-    # Generic foreign key to support Contact (and potentially other models)
-    content_type = models.ForeignKey(
-        ContentType,
+    contact = models.ForeignKey(
+        'tenancy.Contact',
         on_delete=models.CASCADE,
-        limit_choices_to=models.Q(app_label='tenancy', model='contact'),
-        related_name='+'
+        related_name='azure_group_ownerships'
     )
-    object_id = models.PositiveIntegerField()
-    owner = GenericForeignKey('content_type', 'object_id')
     
     class Meta:
         ordering = ['group__name']
-        verbose_name = ''  # Hide from NetBox auto-display
-        verbose_name_plural = ''  # Hide from NetBox auto-display
-        unique_together = ['group', 'content_type', 'object_id']
+        verbose_name = 'Contact Group Ownership'
+        verbose_name_plural = 'Contact Group Ownerships'
+        unique_together = ['group', 'contact']
 
     def __str__(self) -> str:
-        return f'{self.group.name} - Owner: {self.owner}'
+        return f'{self.group.name} - Owner: {self.contact.name}'
 
     def get_absolute_url(self) -> str:
-        return reverse('plugins:netbox_azure_groups:groupownership', args=[self.pk])
+        return reverse('plugins:netbox_azure_groups:contactgroupownership', args=[self.pk])
 
 
-class GroupMembership(NetBoxModel):
+class ContactGroupMembership(NetBoxModel):
     """
-    Represents membership of a Contact or Device in an Azure AD group
+    Represents membership of a Contact in an Azure AD group
     """
     group = models.ForeignKey(
         AzureGroup,
         on_delete=models.CASCADE,
-        related_name='memberships'
+        related_name='contact_memberships'
     )
-    
-    # Generic foreign key to support both Contact and Device models
-    content_type = models.ForeignKey(
-        ContentType,
+    contact = models.ForeignKey(
+        'tenancy.Contact',
         on_delete=models.CASCADE,
-        limit_choices_to=models.Q(
-            models.Q(app_label='tenancy', model='contact') |
-            models.Q(app_label='dcim', model='device')
-        ),
-        related_name='+'
+        related_name='azure_group_memberships'
     )
-    object_id = models.PositiveIntegerField()
-    member = GenericForeignKey('content_type', 'object_id')
     
     # Azure AD membership metadata
     member_type = models.CharField(
@@ -140,12 +125,51 @@ class GroupMembership(NetBoxModel):
     
     class Meta:
         ordering = ['group__name']
-        verbose_name = ''  # Hide from NetBox auto-display
-        verbose_name_plural = ''  # Hide from NetBox auto-display
-        unique_together = ['group', 'content_type', 'object_id']
+        verbose_name = 'Contact Group Membership'
+        verbose_name_plural = 'Contact Group Memberships'
+        unique_together = ['group', 'contact']
 
     def __str__(self) -> str:
-        return f'{self.group.name} - {self.member}'
+        return f'{self.group.name} - {self.contact.name}'
 
     def get_absolute_url(self) -> str:
-        return reverse('plugins:netbox_azure_groups:groupmembership', args=[self.pk])
+        return reverse('plugins:netbox_azure_groups:contactgroupmembership', args=[self.pk])
+
+
+class DeviceGroupMembership(NetBoxModel):
+    """
+    Represents membership of a Device in an Azure AD group
+    """
+    group = models.ForeignKey(
+        AzureGroup,
+        on_delete=models.CASCADE,
+        related_name='device_memberships'
+    )
+    device = models.ForeignKey(
+        'dcim.Device',
+        on_delete=models.CASCADE,
+        related_name='azure_group_memberships'
+    )
+    
+    # Azure AD membership metadata
+    member_type = models.CharField(
+        max_length=20,
+        choices=[
+            ('direct', 'Direct Member'),
+            ('nested', 'Nested Member'),
+        ],
+        default='direct',
+        help_text='Type of group membership'
+    )
+    
+    class Meta:
+        ordering = ['group__name']
+        verbose_name = 'Device Group Membership'
+        verbose_name_plural = 'Device Group Memberships'
+        unique_together = ['group', 'device']
+
+    def __str__(self) -> str:
+        return f'{self.group.name} - {self.device.name}'
+
+    def get_absolute_url(self) -> str:
+        return reverse('plugins:netbox_azure_groups:devicegroupmembership', args=[self.pk])
