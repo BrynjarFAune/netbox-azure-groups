@@ -60,6 +60,5 @@ class DeviceAzureGroupsExtension(PluginTemplateExtension):
         })
 
 
-# Temporarily disable template extensions during refactoring
-template_extensions = []
-# template_extensions = [ContactAzureGroupsExtension, DeviceAzureGroupsExtension]
+# Re-enable template extensions with new direct ForeignKey models
+template_extensions = [ContactAzureGroupsExtension, DeviceAzureGroupsExtension]
