@@ -112,7 +112,7 @@ class GroupOwnershipForm(NetBoxModelForm):
     
     class Meta:
         model = GroupOwnership
-        fields = ['group', 'contact', 'assigned_date']
+        fields = ['group', 'contact']
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
