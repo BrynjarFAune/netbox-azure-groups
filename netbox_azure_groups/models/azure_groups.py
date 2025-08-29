@@ -270,6 +270,7 @@ class GroupOwnership(NetBoxModel):
         on_delete=models.CASCADE,
         related_name='owned_azure_groups'
     )
+    assigned_date = models.DateTimeField(auto_now_add=True)
     
     class Meta:
         unique_together = [['group', 'contact']]
