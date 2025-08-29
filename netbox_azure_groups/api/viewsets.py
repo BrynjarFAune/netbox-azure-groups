@@ -4,13 +4,9 @@ from datetime import timedelta
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from netbox.api.viewsets import NetBoxModelViewSet
-from ..models import AzureGroup, GroupMembership, GroupOwnership
+from ..models import AzureGroup
 from ..models.azure_groups import GroupTypeChoices, GroupSourceChoices
-from .serializers import (
-    AzureGroupSerializer, 
-    GroupMembershipSerializer, 
-    GroupOwnershipSerializer
-)
+from .serializers import AzureGroupSerializer
 
 
 class AzureGroupViewSet(NetBoxModelViewSet):

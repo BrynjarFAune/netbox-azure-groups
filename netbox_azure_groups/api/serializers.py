@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from netbox.api.serializers import NetBoxModelSerializer
-from ..models import AzureGroup, GroupMembership, GroupOwnership
+from ..models import AzureGroup
 
 
 class AzureGroupSerializer(NetBoxModelSerializer):
