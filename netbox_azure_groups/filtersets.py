@@ -1,6 +1,6 @@
 import django_filters
 from netbox.filtersets import NetBoxModelFilterSet
-from .models import AzureGroup, ContactGroupMembership, ContactGroupOwnership, DeviceGroupMembership
+from .models import AzureGroup, GroupMembership, GroupOwnership
 
 
 class AzureGroupFilterSet(NetBoxModelFilterSet):
@@ -14,12 +14,12 @@ class AzureGroupFilterSet(NetBoxModelFilterSet):
     class Meta:
         model = AzureGroup
         fields = [
-            'id', 'name', 'object_id', 'group_type', 'mail',
-            'is_security_enabled', 'is_mail_enabled', 'created_datetime'
+            'id', 'name', 'object_id', 'group_type', 'source', 'mail',
+            'is_security_enabled', 'is_mail_enabled', 'azure_created'
         ]
 
 
-class ContactGroupMembershipFilterSet(NetBoxModelFilterSet):
+class GroupMembershipFilterSet(NetBoxModelFilterSet):
     group_id = django_filters.ModelMultipleChoiceFilter(
         queryset=AzureGroup.objects.all(),
         label='Group'
@@ -27,45 +27,32 @@ class ContactGroupMembershipFilterSet(NetBoxModelFilterSet):
     contact_id = django_filters.ModelMultipleChoiceFilter(
         queryset=None,  # Will be set in __init__
         label='Contact'
-    )
-    member_type = django_filters.MultipleChoiceFilter(
-        choices=ContactGroupMembership._meta.get_field('member_type').choices,
-    )
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        from tenancy.models import Contact
-        self.filters['contact_id'].queryset = Contact.objects.all()
-
-    class Meta:
-        model = ContactGroupMembership
-        fields = ['id', 'group_id', 'contact_id', 'member_type']
-
-
-class DeviceGroupMembershipFilterSet(NetBoxModelFilterSet):
-    group_id = django_filters.ModelMultipleChoiceFilter(
-        queryset=AzureGroup.objects.all(),
-        label='Group'
     )
     device_id = django_filters.ModelMultipleChoiceFilter(
         queryset=None,  # Will be set in __init__
         label='Device'
     )
-    member_type = django_filters.MultipleChoiceFilter(
-        choices=DeviceGroupMembership._meta.get_field('member_type').choices,
+    membership_type = django_filters.MultipleChoiceFilter(
+        choices=[
+            ('direct', 'Direct Member'),
+            ('nested', 'Via Nested Group'), 
+            ('dynamic', 'Dynamic Rule Match'),
+        ],
     )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        from tenancy.models import Contact
         from dcim.models import Device
+        self.filters['contact_id'].queryset = Contact.objects.all()
         self.filters['device_id'].queryset = Device.objects.all()
 
     class Meta:
-        model = DeviceGroupMembership
-        fields = ['id', 'group_id', 'device_id', 'member_type']
+        model = GroupMembership
+        fields = ['id', 'group_id', 'contact_id', 'device_id', 'membership_type']
 
 
-class ContactGroupOwnershipFilterSet(NetBoxModelFilterSet):
+class GroupOwnershipFilterSet(NetBoxModelFilterSet):
     group_id = django_filters.ModelMultipleChoiceFilter(
         queryset=AzureGroup.objects.all(),
         label='Group'
@@ -81,5 +68,5 @@ class ContactGroupOwnershipFilterSet(NetBoxModelFilterSet):
         self.filters['contact_id'].queryset = Contact.objects.all()
 
     class Meta:
-        model = ContactGroupOwnership
+        model = GroupOwnership
         fields = ['id', 'group_id', 'contact_id']

@@ -1,62 +1,52 @@
 from rest_framework import serializers
 from netbox.api.serializers import NetBoxModelSerializer
-from ..models import AzureGroup, ContactGroupMembership, ContactGroupOwnership, DeviceGroupMembership
+from ..models import AzureGroup, GroupMembership, GroupOwnership
 
 
 class AzureGroupSerializer(NetBoxModelSerializer):
     url = serializers.HyperlinkedIdentityField(view_name='plugins-api:netbox_azure_groups-api:azuregroup-detail')
-    total_member_count = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = AzureGroup
         fields = [
-            'id', 'url', 'display', 'name', 'description', 'object_id', 'mail',
-            'group_type', 'is_security_enabled', 'is_mail_enabled', 'created_datetime',
-            'total_member_count', 'created', 'last_updated', 'custom_fields', 'tags'
+            'id', 'url', 'display', 'object_id', 'name', 'description', 'group_type',
+            'source', 'is_security_enabled', 'is_mail_enabled', 'mail', 'membership_type',
+            'membership_rule', 'member_count', 'owner_count', 'azure_created', 'azure_modified',
+            'last_sync', 'is_deleted', 'created', 'last_updated', 'custom_fields', 'tags'
+        ]
+        read_only_fields = [
+            'member_count', 'owner_count', 'last_sync', 'created', 'last_updated'
         ]
 
 
-class ContactGroupMembershipSerializer(NetBoxModelSerializer):
-    url = serializers.HyperlinkedIdentityField(view_name='plugins-api:netbox_azure_groups-api:contactgroupmembership-detail')
+class GroupMembershipSerializer(NetBoxModelSerializer):
+    url = serializers.HyperlinkedIdentityField(view_name='plugins-api:netbox_azure_groups-api:groupmembership-detail')
+    group = AzureGroupSerializer(read_only=True)
+    group_id = serializers.IntegerField(write_only=True)
+    contact_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
+    device_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
+    membership_type_display = serializers.CharField(source='get_membership_type_display', read_only=True)
+    
+    class Meta:
+        model = GroupMembership
+        fields = [
+            'id', 'url', 'display', 'group', 'group_id', 'contact', 'contact_id',
+            'device', 'device_id', 'membership_type', 'membership_type_display',
+            'nested_via', 'added_date'
+        ]
+        read_only_fields = ['added_date']
+
+
+class GroupOwnershipSerializer(NetBoxModelSerializer):
+    url = serializers.HyperlinkedIdentityField(view_name='plugins-api:netbox_azure_groups-api:groupownership-detail')
     group = AzureGroupSerializer(read_only=True)
     group_id = serializers.IntegerField(write_only=True)
     contact_id = serializers.IntegerField(write_only=True)
-    member_type_display = serializers.CharField(source='get_member_type_display', read_only=True)
     
     class Meta:
-        model = ContactGroupMembership
+        model = GroupOwnership
         fields = [
             'id', 'url', 'display', 'group', 'group_id', 'contact', 'contact_id',
-            'member_type', 'member_type_display', 'created', 'last_updated',
-            'custom_fields', 'tags'
+            'assigned_date'
         ]
-
-
-class ContactGroupOwnershipSerializer(NetBoxModelSerializer):
-    url = serializers.HyperlinkedIdentityField(view_name='plugins-api:netbox_azure_groups-api:contactgroupownership-detail')
-    group = AzureGroupSerializer(read_only=True)
-    group_id = serializers.IntegerField(write_only=True)
-    contact_id = serializers.IntegerField(write_only=True)
-    
-    class Meta:
-        model = ContactGroupOwnership
-        fields = [
-            'id', 'url', 'display', 'group', 'group_id', 'contact', 'contact_id',
-            'created', 'last_updated', 'custom_fields', 'tags'
-        ]
-
-
-class DeviceGroupMembershipSerializer(NetBoxModelSerializer):
-    url = serializers.HyperlinkedIdentityField(view_name='plugins-api:netbox_azure_groups-api:devicegroupmembership-detail')
-    group = AzureGroupSerializer(read_only=True)
-    group_id = serializers.IntegerField(write_only=True)
-    device_id = serializers.IntegerField(write_only=True)
-    member_type_display = serializers.CharField(source='get_member_type_display', read_only=True)
-    
-    class Meta:
-        model = DeviceGroupMembership
-        fields = [
-            'id', 'url', 'display', 'group', 'group_id', 'device', 'device_id',
-            'member_type', 'member_type_display', 'created', 'last_updated',
-            'custom_fields', 'tags'
-        ]
+        read_only_fields = ['assigned_date']

@@ -4,13 +4,12 @@ from datetime import timedelta
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from netbox.api.viewsets import NetBoxModelViewSet
-from ..models import AzureGroup, ContactGroupMembership, ContactGroupOwnership, DeviceGroupMembership, GroupMembership, GroupOwnership
+from ..models import AzureGroup, GroupMembership, GroupOwnership
 from ..models.azure_groups import GroupTypeChoices, GroupSourceChoices
 from .serializers import (
     AzureGroupSerializer, 
-    ContactGroupMembershipSerializer, 
-    ContactGroupOwnershipSerializer, 
-    DeviceGroupMembershipSerializer
+    GroupMembershipSerializer, 
+    GroupOwnershipSerializer
 )
 
 
@@ -111,25 +110,17 @@ class AzureGroupViewSet(NetBoxModelViewSet):
         })
 
 
-class ContactGroupMembershipViewSet(NetBoxModelViewSet):
-    queryset = ContactGroupMembership.objects.prefetch_related('tags', 'group', 'contact')
-    serializer_class = ContactGroupMembershipSerializer
+class GroupMembershipViewSet(NetBoxModelViewSet):
+    queryset = GroupMembership.objects.select_related('group', 'contact', 'device')
+    serializer_class = GroupMembershipSerializer
     filterset_fields = [
-        'group_id', 'contact_id', 'member_type'
+        'group_id', 'contact_id', 'device_id', 'membership_type'
     ]
 
 
-class ContactGroupOwnershipViewSet(NetBoxModelViewSet):
-    queryset = ContactGroupOwnership.objects.prefetch_related('tags', 'group', 'contact')
-    serializer_class = ContactGroupOwnershipSerializer
+class GroupOwnershipViewSet(NetBoxModelViewSet):
+    queryset = GroupOwnership.objects.select_related('group', 'contact')
+    serializer_class = GroupOwnershipSerializer
     filterset_fields = [
         'group_id', 'contact_id'
-    ]
-
-
-class DeviceGroupMembershipViewSet(NetBoxModelViewSet):
-    queryset = DeviceGroupMembership.objects.prefetch_related('tags', 'group', 'device')
-    serializer_class = DeviceGroupMembershipSerializer
-    filterset_fields = [
-        'group_id', 'device_id', 'member_type'
     ]
