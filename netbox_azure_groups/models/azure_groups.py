@@ -2,10 +2,10 @@ from django.db import models
 from django.urls import reverse
 from django.core.exceptions import ValidationError
 from django.utils import timezone
-from django.core.validators import validate_uuid4
 from datetime import timedelta
 from netbox.models import NetBoxModel
 from utilities.choices import ChoiceSet
+import uuid
 
 
 class GroupTypeChoices(ChoiceSet):
@@ -56,7 +56,6 @@ class AzureGroup(NetBoxModel):
     object_id = models.CharField(
         max_length=36,
         unique=True,
-        validators=[validate_uuid4],
         help_text="Azure AD object GUID"
     )
     name = models.CharField(
@@ -154,6 +153,13 @@ class AzureGroup(NetBoxModel):
         ]
 
     def clean(self):
+        # Validate UUID format for object_id
+        if self.object_id:
+            try:
+                uuid.UUID(self.object_id)
+            except ValueError:
+                raise ValidationError({'object_id': 'Invalid UUID format'})
+        
         # Enforce read-only for on-premises groups
         if self.pk and self.source == GroupSourceChoices.ON_PREMISES:
             original = AzureGroup.objects.get(pk=self.pk)
