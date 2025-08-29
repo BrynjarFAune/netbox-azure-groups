@@ -8,6 +8,12 @@ from .azure_groups import (
     MembershipTypeChoices,
 )
 
+# Backward compatibility aliases for old model names
+# TODO: Remove these aliases after updating all references
+ContactGroupMembership = GroupMembership
+ContactGroupOwnership = GroupOwnership
+DeviceGroupMembership = GroupMembership
+
 __all__ = [
     'AzureGroup',
     'GroupMembership',
@@ -15,4 +21,8 @@ __all__ = [
     'GroupTypeChoices',
     'GroupSourceChoices',
     'MembershipTypeChoices',
+    # Legacy aliases
+    'ContactGroupMembership',
+    'ContactGroupOwnership', 
+    'DeviceGroupMembership',
 ]

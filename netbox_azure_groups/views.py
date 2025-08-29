@@ -6,20 +6,16 @@ from . import filtersets, forms, models, tables
 
 
 class AzureGroupView(generic.ObjectView):
-    queryset = models.AzureGroup.objects.prefetch_related('tags', 'contact_memberships', 'device_memberships', 'contact_ownerships')
+    queryset = models.AzureGroup.objects.prefetch_related('tags', 'memberships', 'ownerships')
 
     def get_extra_context(self, request, instance):
-        contact_memberships = instance.contact_memberships.select_related('contact')
-        device_memberships = instance.device_memberships.select_related('device')
-        contact_ownerships = instance.contact_ownerships.select_related('contact')
-        
-        total_memberships = contact_memberships.count() + device_memberships.count()
+        memberships = instance.memberships.select_related('contact', 'device')
+        ownerships = instance.ownerships.select_related('contact')
         
         return {
-            'contact_memberships': contact_memberships,
-            'device_memberships': device_memberships,
-            'contact_ownerships': contact_ownerships,
-            'total_member_count': total_memberships,
+            'memberships': memberships,
+            'ownerships': ownerships,
+            'total_member_count': memberships.count(),
         }
 
 
