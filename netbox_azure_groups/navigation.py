@@ -1,6 +1,15 @@
-from netbox.plugins import PluginMenu
+from netbox.plugins import PluginMenuItem, PluginMenu
 
-# Navigation disabled temporarily - views need to be restored
-# TODO: Re-enable navigation when UI views are implemented
-
-menu = None
+menu = PluginMenu(
+    label='Azure AD Groups',
+    groups=[
+        ('Directory', [
+            PluginMenuItem(
+                link='plugins:netbox_azure_groups:azuregroup_list',
+                link_text='Azure Groups',
+                # No add button - read-only interface
+            ),
+        ])
+    ],
+    icon_class='mdi mdi-account-group'
+)
