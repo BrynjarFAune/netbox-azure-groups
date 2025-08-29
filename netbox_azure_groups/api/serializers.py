@@ -10,7 +10,10 @@ class AzureGroupSerializer(NetBoxModelSerializer):
         model = AzureGroup
         fields = [
             'id', 'url', 'display', 'object_id', 'name', 'description', 'group_type',
-            'is_security_enabled', 'is_mail_enabled', 'mail', 'created_datetime',
-            'created', 'last_updated', 'custom_fields', 'tags'
+            'source', 'is_security_enabled', 'is_mail_enabled', 'mail', 'membership_type',
+            'membership_rule', 'member_count', 'owner_count', 'azure_created', 'azure_modified',
+            'last_sync', 'is_deleted', 'created', 'last_updated', 'custom_fields', 'tags'
         ]
-        read_only_fields = ['created', 'last_updated']
+        read_only_fields = [
+            'member_count', 'owner_count', 'last_sync', 'created', 'last_updated'
+        ]
