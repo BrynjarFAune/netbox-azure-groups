@@ -13,7 +13,7 @@ class AzureGroupForm(NetBoxModelForm):
             'object_id', 'name', 'description', 'group_type', 'source',
             'is_security_enabled', 'is_mail_enabled', 'mail', 'membership_type', 
             'membership_rule', 'member_count', 'owner_count', 'azure_created',
-            'azure_modified', 'tags', 'comments'
+            'azure_modified', 'tags'
         ]
         widgets = {
             'azure_created': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
@@ -25,9 +25,9 @@ class AzureGroupForm(NetBoxModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
-        # Make ALL fields read-only except tags and comments
+        # Make ALL fields read-only except tags
         # Groups are immutable and managed by external systems
-        readonly_fields = set(self.fields.keys()) - {'tags', 'comments'}
+        readonly_fields = set(self.fields.keys()) - {'tags'}
         
         for field_name in readonly_fields:
             field = self.fields[field_name]
