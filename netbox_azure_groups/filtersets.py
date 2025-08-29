@@ -14,8 +14,8 @@ class AzureGroupFilterSet(NetBoxModelFilterSet):
     class Meta:
         model = AzureGroup
         fields = [
-            'id', 'name', 'object_id', 'group_type', 'source', 'mail',
-            'is_security_enabled', 'is_mail_enabled', 'azure_created'
+            'name', 'object_id', 'group_type', 'source', 'mail',
+            'is_security_enabled', 'is_mail_enabled'
         ]
 
 
@@ -49,7 +49,7 @@ class GroupMembershipFilterSet(NetBoxModelFilterSet):
 
     class Meta:
         model = GroupMembership
-        fields = ['id', 'group_id', 'contact_id', 'device_id', 'membership_type']
+        fields = ['group_id', 'contact_id', 'device_id', 'membership_type']
 
 
 class GroupOwnershipFilterSet(NetBoxModelFilterSet):
@@ -69,4 +69,4 @@ class GroupOwnershipFilterSet(NetBoxModelFilterSet):
 
     class Meta:
         model = GroupOwnership
-        fields = ['id', 'group_id', 'contact_id']
+        fields = ['group_id', 'contact_id']
