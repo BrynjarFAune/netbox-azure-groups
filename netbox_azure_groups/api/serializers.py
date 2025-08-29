@@ -32,9 +32,9 @@ class GroupMembershipSerializer(NetBoxModelSerializer):
         fields = [
             'id', 'url', 'display', 'group', 'group_id', 'contact', 'contact_id',
             'device', 'device_id', 'membership_type', 'membership_type_display',
-            'nested_via', 'added_date'
+            'nested_via', 'created', 'last_updated'
         ]
-        read_only_fields = ['added_date']
+        read_only_fields = ['created', 'last_updated']
 
 
 class GroupOwnershipSerializer(NetBoxModelSerializer):
@@ -47,6 +47,6 @@ class GroupOwnershipSerializer(NetBoxModelSerializer):
         model = GroupOwnership
         fields = [
             'id', 'url', 'display', 'group', 'group_id', 'contact', 'contact_id',
-            'assigned_date'
+            'created', 'last_updated'
         ]
-        read_only_fields = ['assigned_date']
+        read_only_fields = ['created', 'last_updated']

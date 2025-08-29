@@ -188,7 +188,7 @@ class AzureGroup(NetBoxModel):
         return reverse('plugins:netbox_azure_groups:azuregroup', args=[self.pk])
 
 
-class GroupMembership(models.Model):
+class GroupMembership(NetBoxModel):
     """Many-to-many relationship between groups and contacts/devices."""
     
     group = models.ForeignKey(
@@ -230,7 +230,6 @@ class GroupMembership(models.Model):
         help_text="Group IDs traversed for nested membership"
     )
     
-    added_date = models.DateTimeField(auto_now_add=True)
     
     class Meta:
         unique_together = [
@@ -258,7 +257,7 @@ class GroupMembership(models.Model):
         return reverse('plugins:netbox_azure_groups:groupmembership', args=[self.pk])
 
 
-class GroupOwnership(models.Model):
+class GroupOwnership(NetBoxModel):
     """Group ownership tracking separate from membership."""
     
     group = models.ForeignKey(
@@ -271,7 +270,6 @@ class GroupOwnership(models.Model):
         on_delete=models.CASCADE,
         related_name='owned_azure_groups'
     )
-    assigned_date = models.DateTimeField(auto_now_add=True)
     
     class Meta:
         unique_together = [['group', 'contact']]
