@@ -1,0 +1,34 @@
+{% load azure_groups %}
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">
+            {{ group.name }}
+            {% group_badge group %}
+            {% readonly_indicator group %}
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <strong>Type:</strong> {% group_type_badge group %}<br>
+                <strong>Source:</strong> {{ group.get_source_display }}<br>
+                {% if group.mail %}
+                    <strong>Email:</strong> {{ group.mail }}<br>
+                {% endif %}
+            </div>
+            <div class="col-md-6">
+                <strong>Members:</strong> 
+                <span class="badge bg-secondary text-white">{{ member_count }}</span><br>
+                <strong>Owners:</strong> 
+                <span class="badge bg-secondary text-white">{{ owner_count }}</span><br>
+                <strong>Status:</strong> {% sync_status_badge group %}
+            </div>
+        </div>
+        {% if group.description %}
+            <div class="mt-2">
+                <strong>Description:</strong><br>
+                <small class="text-muted">{{ group.description|truncatewords:20 }}</small>
+            </div>
+        {% endif %}
+    </div>
+</div>

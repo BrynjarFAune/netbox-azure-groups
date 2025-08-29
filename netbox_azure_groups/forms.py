@@ -1,18 +1,55 @@
 from django import forms
 from netbox.forms import NetBoxModelForm, NetBoxModelFilterSetForm
-from .models import AzureGroup, GroupTypeChoices, ContactGroupMembership, ContactGroupOwnership, DeviceGroupMembership
+from .models import AzureGroup, GroupMembership, GroupOwnership
+from .models.azure_groups import GroupTypeChoices, GroupSourceChoices, MembershipTypeChoices
 
 
 class AzureGroupForm(NetBoxModelForm):
+    """Read-only form for Azure Groups - only allows viewing and deletion."""
+    
     class Meta:
         model = AzureGroup
         fields = [
-            'name', 'description', 'object_id', 'mail', 'group_type',
-            'is_security_enabled', 'is_mail_enabled', 'created_datetime', 'tags'
+            'object_id', 'name', 'description', 'group_type', 'source',
+            'is_security_enabled', 'is_mail_enabled', 'mail', 'membership_type', 
+            'membership_rule', 'member_count', 'owner_count', 'azure_created',
+            'azure_modified', 'tags', 'comments'
         ]
         widgets = {
-            'created_datetime': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+            'azure_created': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+            'azure_modified': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+            'membership_rule': forms.Textarea(attrs={'rows': 3}),
+            'description': forms.Textarea(attrs={'rows': 3}),
         }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Make ALL fields read-only except tags and comments
+        # Groups are immutable and managed by external systems
+        readonly_fields = set(self.fields.keys()) - {'tags', 'comments'}
+        
+        for field_name in readonly_fields:
+            field = self.fields[field_name]
+            field.disabled = True
+            
+            # Add visual styling and help text
+            base_help = field.help_text or ''
+            if self.instance.pk and self.instance.source == GroupSourceChoices.ON_PREMISES:
+                field.help_text = f"{base_help} (Managed by On-Premises AD)".strip()
+            else:
+                field.help_text = f"{base_help} (Managed by Azure AD)".strip()
+            
+            # Add visual indicator
+            if hasattr(field.widget, 'attrs'):
+                field.widget.attrs.update({
+                    'class': f"{field.widget.attrs.get('class', '')} bg-light text-muted".strip(),
+                    'title': 'This field is read-only - groups are managed externally'
+                })
+        
+        # Hide membership rule unless it's a dynamic group
+        if self.instance.pk and self.instance.membership_type != MembershipTypeChoices.DYNAMIC:
+            self.fields['membership_rule'].widget = forms.HiddenInput()
 
 
 class AzureGroupFilterForm(NetBoxModelFilterSetForm):
@@ -24,91 +61,72 @@ class AzureGroupFilterForm(NetBoxModelFilterSetForm):
         choices=GroupTypeChoices.CHOICES,
         required=False
     )
+    source = forms.MultipleChoiceField(
+        choices=GroupSourceChoices.CHOICES,
+        required=False
+    )
+    membership_type = forms.MultipleChoiceField(
+        choices=MembershipTypeChoices.CHOICES,
+        required=False
+    )
     is_security_enabled = forms.BooleanField(required=False)
     is_mail_enabled = forms.BooleanField(required=False)
+    is_deleted = forms.BooleanField(required=False)
 
 
-class ContactGroupMembershipForm(NetBoxModelForm):
+class GroupMembershipForm(NetBoxModelForm):
+    """Read-only form for Group Memberships - managed externally."""
+    
     class Meta:
-        model = ContactGroupMembership
-        fields = ['group', 'contact', 'member_type', 'tags']
+        model = GroupMembership
+        fields = ['group', 'contact', 'device', 'membership_type', 'nested_via']
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Make all fields read-only - memberships are managed externally
+        for field_name, field in self.fields.items():
+            field.disabled = True
+            field.help_text = f"{field.help_text or ''} (Managed externally)".strip()
 
 
-class ContactGroupMembershipFilterForm(NetBoxModelFilterSetForm):
-    model = ContactGroupMembership
+class GroupMembershipFilterForm(NetBoxModelFilterSetForm):
+    model = GroupMembership
     
     group = forms.ModelChoiceField(
         queryset=AzureGroup.objects.all(),
         required=False,
         label='Group'
     )
-    contact = forms.ModelChoiceField(
-        queryset=None,  # Will be set dynamically
-        required=False,
-        label='Contact'
-    )
-    member_type = forms.MultipleChoiceField(
-        choices=ContactGroupMembership._meta.get_field('member_type').choices,
+    membership_type = forms.MultipleChoiceField(
+        choices=[
+            ('direct', 'Direct Member'),
+            ('nested', 'Via Nested Group'), 
+            ('dynamic', 'Dynamic Rule Match'),
+        ],
         required=False
     )
+
+
+class GroupOwnershipForm(NetBoxModelForm):
+    """Read-only form for Group Ownerships - managed externally."""
+    
+    class Meta:
+        model = GroupOwnership
+        fields = ['group', 'contact', 'assigned_date']
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        from tenancy.models import Contact
-        self.fields['contact'].queryset = Contact.objects.all()
+        # Make all fields read-only - ownerships are managed externally
+        for field_name, field in self.fields.items():
+            field.disabled = True
+            field.help_text = f"{field.help_text or ''} (Managed externally)".strip()
 
 
-class DeviceGroupMembershipForm(NetBoxModelForm):
-    class Meta:
-        model = DeviceGroupMembership
-        fields = ['group', 'device', 'member_type', 'tags']
-
-
-class DeviceGroupMembershipFilterForm(NetBoxModelFilterSetForm):
-    model = DeviceGroupMembership
+class GroupOwnershipFilterForm(NetBoxModelFilterSetForm):
+    model = GroupOwnership
     
     group = forms.ModelChoiceField(
         queryset=AzureGroup.objects.all(),
         required=False,
         label='Group'
     )
-    device = forms.ModelChoiceField(
-        queryset=None,  # Will be set dynamically
-        required=False,
-        label='Device'
-    )
-    member_type = forms.MultipleChoiceField(
-        choices=DeviceGroupMembership._meta.get_field('member_type').choices,
-        required=False
-    )
-    
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        from dcim.models import Device
-        self.fields['device'].queryset = Device.objects.all()
-
-
-class ContactGroupOwnershipForm(NetBoxModelForm):
-    class Meta:
-        model = ContactGroupOwnership
-        fields = ['group', 'contact', 'tags']
-
-
-class ContactGroupOwnershipFilterForm(NetBoxModelFilterSetForm):
-    model = ContactGroupOwnership
-    
-    group = forms.ModelChoiceField(
-        queryset=AzureGroup.objects.all(),
-        required=False,
-        label='Group'
-    )
-    contact = forms.ModelChoiceField(
-        queryset=None,  # Will be set dynamically
-        required=False,
-        label='Contact'
-    )
-    
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        from tenancy.models import Contact
-        self.fields['contact'].queryset = Contact.objects.all()
