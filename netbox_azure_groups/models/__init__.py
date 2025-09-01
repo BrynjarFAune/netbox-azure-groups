@@ -6,14 +6,15 @@ from .azure_groups import (
     GroupTypeChoices,
     GroupSourceChoices,
     MembershipTypeChoices,
-    # RBAC Extension Models
-    RBACSystem,
-    RBACPermission,
-    ServiceAccount,
-    RBACAssignment,
-    RBACSystemChoices,
-    PermissionTypeChoices,
-    AssignmentTypeChoices,
+    # Access Control Extension Models
+    ProtectedResource,
+    AccessControlMethod,
+    AccessGrant,
+    ResourceTypeChoices,
+    CriticalityChoices,
+    ControlTypeChoices,
+    AccessLevelChoices,
+    GrantedViaChoices,
 )
 
 # Backward compatibility aliases for old model names
@@ -29,14 +30,15 @@ __all__ = [
     'GroupTypeChoices',
     'GroupSourceChoices',
     'MembershipTypeChoices',
-    # RBAC Extension Models
-    'RBACSystem',
-    'RBACPermission',
-    'ServiceAccount',
-    'RBACAssignment',
-    'RBACSystemChoices',
-    'PermissionTypeChoices',
-    'AssignmentTypeChoices',
+    # Access Control Extension Models
+    'ProtectedResource',
+    'AccessControlMethod',
+    'AccessGrant',
+    'ResourceTypeChoices',
+    'CriticalityChoices',
+    'ControlTypeChoices',
+    'AccessLevelChoices',
+    'GrantedViaChoices',
     # Legacy aliases
     'ContactGroupMembership',
     'ContactGroupOwnership', 

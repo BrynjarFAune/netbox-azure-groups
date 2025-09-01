@@ -288,182 +288,112 @@ class GroupOwnership(NetBoxModel):
         return self.group.get_absolute_url()
 
 
-# RBAC Extension Models
 
-class RBACSystemChoices(ChoiceSet):
-    AZURE_AD = 'azure_ad'
-    ON_PREMISES_AD = 'on_premises_ad'
-    FORTIGATE = 'fortigate'
+# Access Control Extension Models
+
+class ResourceTypeChoices(ChoiceSet):
+    WEB_APPLICATION = 'web_application'
+    DATABASE = 'database'
+    API_SERVICE = 'api_service'
+    FILE_SHARE = 'file_share'
+    PHYSICAL_LOCATION = 'physical_location'
+    NETWORK_DEVICE = 'network_device'
+    CLOUD_RESOURCE = 'cloud_resource'
+    OTHER = 'other'
     
     CHOICES = [
-        (AZURE_AD, 'Azure Active Directory'),
-        (ON_PREMISES_AD, 'On-Premises Active Directory'),
-        (FORTIGATE, 'FortiGate Firewall'),
+        (WEB_APPLICATION, 'Web Application'),
+        (DATABASE, 'Database'),
+        (API_SERVICE, 'API Service'),
+        (FILE_SHARE, 'File Share'),
+        (PHYSICAL_LOCATION, 'Physical Location'),
+        (NETWORK_DEVICE, 'Network Device'),
+        (CLOUD_RESOURCE, 'Cloud Resource'),
+        (OTHER, 'Other'),
     ]
 
 
-class RBACSystem(NetBoxModel):
-    """Systems where RBAC permissions are managed and tracked."""
+class CriticalityChoices(ChoiceSet):
+    LOW = 'low'
+    MEDIUM = 'medium'
+    HIGH = 'high'
+    CRITICAL = 'critical'
+    
+    CHOICES = [
+        (LOW, 'Low'),
+        (MEDIUM, 'Medium'),
+        (HIGH, 'High'),
+        (CRITICAL, 'Critical'),
+    ]
+
+
+class ProtectedResource(NetBoxModel):
+    """Any resource that requires access control."""
     
     name = models.CharField(
-        max_length=100,
+        max_length=200,
         unique=True,
-        help_text='System name (e.g., "Azure AD Production", "FortiGate HQ")'
+        help_text='Resource name (e.g., "HR Database", "Server Room A", "Finance Portal")'
     )
-    system_type = models.CharField(
+    resource_type = models.CharField(
         max_length=50,
-        choices=RBACSystemChoices,
-        help_text='Type of RBAC system'
+        choices=ResourceTypeChoices,
+        help_text='Type of protected resource'
     )
     description = models.TextField(
         blank=True,
-        help_text='System description and purpose'
+        help_text='Resource description and purpose'
     )
+    
+    # Optional technical details
     base_url = models.URLField(
         blank=True,
-        help_text='System console/management URL'
+        help_text='Resource URL if applicable'
     )
-    tenant_id = models.CharField(
-        max_length=100,
+    ip_addresses = models.JSONField(
+        default=list,
         blank=True,
-        help_text='Tenant/Account ID for cloud systems'
+        help_text='IP addresses associated with this resource'
     )
-    is_active = models.BooleanField(
-        default=True,
-        help_text='Whether system is currently in use'
-    )
-    
-    class Meta:
-        ordering = ['name']
-        verbose_name = 'RBAC System'
-        verbose_name_plural = 'RBAC Systems'
-    
-    def __str__(self):
-        return self.name
-    
-    def get_absolute_url(self):
-        return reverse('plugins:netbox_azure_groups:rbacsystem', args=[self.pk])
-
-
-class PermissionTypeChoices(ChoiceSet):
-    READ = 'read'
-    WRITE = 'write'
-    EXECUTE = 'execute'
-    DELETE = 'delete'
-    ADMIN = 'admin'
-    OWNER = 'owner'
-    CUSTOM = 'custom'
-    
-    CHOICES = [
-        (READ, 'Read'),
-        (WRITE, 'Write'),
-        (EXECUTE, 'Execute'),
-        (DELETE, 'Delete'),
-        (ADMIN, 'Administrator'),
-        (OWNER, 'Owner'),
-        (CUSTOM, 'Custom'),
-    ]
-
-
-class RBACPermission(NetBoxModel):
-    """Individual permissions/rights in RBAC systems."""
-    
-    rbac_system = models.ForeignKey(
-        RBACSystem,
-        on_delete=models.CASCADE,
-        related_name='permissions'
-    )
-    name = models.CharField(
-        max_length=200,
-        help_text='Permission or role name'
-    )
-    permission_type = models.CharField(
-        max_length=20,
-        choices=PermissionTypeChoices,
-        default=PermissionTypeChoices.CUSTOM,
-        help_text='Type of permission'
-    )
-    description = models.TextField(
-        blank=True,
-        help_text='What this permission grants access to'
-    )
-    resource_path = models.CharField(
-        max_length=500,
-        blank=True,
-        help_text='Resource path or scope (e.g., "/subscriptions/...", "OU=Users")'
-    )
-    is_privileged = models.BooleanField(
-        default=False,
-        help_text='Whether this is a privileged/admin permission'
-    )
-    
-    class Meta:
-        ordering = ['rbac_system', 'name']
-        unique_together = [['rbac_system', 'name']]
-        verbose_name = 'RBAC Permission'
-        verbose_name_plural = 'RBAC Permissions'
-        indexes = [
-            models.Index(fields=['rbac_system', 'is_privileged']),
-        ]
-    
-    def __str__(self):
-        return f'{self.rbac_system.name}: {self.name}'
-    
-    def get_absolute_url(self):
-        return reverse('plugins:netbox_azure_groups:rbacpermission', args=[self.pk])
-
-
-class ServiceAccount(NetBoxModel):
-    """Service accounts and non-human identities."""
-    
-    name = models.CharField(
-        max_length=200,
-        unique=True,
-        help_text='Service account name'
-    )
-    object_id = models.CharField(
-        max_length=36,
-        blank=True,
-        help_text='Azure AD object GUID or system-specific ID'
-    )
-    principal_name = models.CharField(
+    physical_location = models.CharField(
         max_length=200,
         blank=True,
-        help_text='UPN or principal name'
+        help_text='Physical location (e.g., "Building A, Room 101")'
     )
-    description = models.TextField(
-        blank=True,
-        help_text='Purpose and usage description'
-    )
+    
+    # Business context
     owner_contact = models.ForeignKey(
         'tenancy.Contact',
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='owned_service_accounts',
-        help_text='Contact responsible for this service account'
+        related_name='owned_resources',
+        help_text='Contact responsible for this resource'
     )
+    business_unit = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text='Business unit that owns this resource'
+    )
+    criticality = models.CharField(
+        max_length=20,
+        choices=CriticalityChoices,
+        default=CriticalityChoices.MEDIUM,
+        help_text='Business criticality of this resource'
+    )
+    
     is_active = models.BooleanField(
         default=True,
-        help_text='Whether account is active'
-    )
-    created_date = models.DateTimeField(
-        null=True,
-        blank=True,
-        help_text='When the service account was created'
-    )
-    last_used = models.DateTimeField(
-        null=True,
-        blank=True,
-        help_text='Last authentication or usage'
+        help_text='Whether resource is currently active'
     )
     
     class Meta:
         ordering = ['name']
-        verbose_name = 'Service Account'
-        verbose_name_plural = 'Service Accounts'
+        verbose_name = 'Protected Resource'
+        verbose_name_plural = 'Protected Resources'
         indexes = [
-            models.Index(fields=['is_active']),
+            models.Index(fields=['resource_type', 'is_active']),
+            models.Index(fields=['criticality']),
             models.Index(fields=['owner_contact']),
         ]
     
@@ -471,138 +401,200 @@ class ServiceAccount(NetBoxModel):
         return self.name
     
     def get_absolute_url(self):
-        return reverse('plugins:netbox_azure_groups:serviceaccount', args=[self.pk])
+        return reverse('plugins:netbox_azure_groups:protectedresource', args=[self.pk])
 
 
-class AssignmentTypeChoices(ChoiceSet):
-    DIRECT = 'direct'
-    GROUP_INHERITED = 'group_inherited'
-    ROLE_ASSIGNMENT = 'role_assignment'
+class ControlTypeChoices(ChoiceSet):
+    FORTIGATE_POLICY = 'fortigate_policy'
+    BADGE_READER = 'badge_reader'
+    VPN_CONFIG = 'vpn_config'
+    APPLICATION_RBAC = 'application_rbac'
+    NETWORK_ACL = 'network_acl'
+    CLOUD_IAM = 'cloud_iam'
+    MANUAL_PROCESS = 'manual_process'
+    OTHER = 'other'
     
     CHOICES = [
-        (DIRECT, 'Direct Assignment'),
-        (GROUP_INHERITED, 'Inherited via Group'),
-        (ROLE_ASSIGNMENT, 'Role Assignment'),
+        (FORTIGATE_POLICY, 'FortiGate Firewall Policy'),
+        (BADGE_READER, 'Physical Badge Reader'),
+        (VPN_CONFIG, 'VPN Configuration'),
+        (APPLICATION_RBAC, 'Application Role'),
+        (NETWORK_ACL, 'Network ACL'),
+        (CLOUD_IAM, 'Cloud IAM Policy'),
+        (MANUAL_PROCESS, 'Manual Process'),
+        (OTHER, 'Other'),
     ]
 
 
-class RBACAssignment(NetBoxModel):
-    """Links permissions to assignees with metadata."""
+class AccessLevelChoices(ChoiceSet):
+    READ = 'read'
+    WRITE = 'write'
+    ADMIN = 'admin'
+    FULL = 'full'
+    PHYSICAL = 'physical'
     
-    permission = models.ForeignKey(
-        RBACPermission,
+    CHOICES = [
+        (READ, 'Read Only'),
+        (WRITE, 'Read/Write'),
+        (ADMIN, 'Administrative'),
+        (FULL, 'Full Access'),
+        (PHYSICAL, 'Physical Access'),
+    ]
+
+
+class AccessControlMethod(NetBoxModel):
+    """How access to a resource is controlled and enforced."""
+    
+    resource = models.ForeignKey(
+        ProtectedResource,
         on_delete=models.CASCADE,
-        related_name='assignments'
+        related_name='access_methods'
     )
     
-    # Assignee can be contact, device, or service account
-    contact = models.ForeignKey(
-        'tenancy.Contact',
-        on_delete=models.CASCADE,
-        null=True,
+    # What enforces the access
+    control_type = models.CharField(
+        max_length=50,
+        choices=ControlTypeChoices,
+        help_text='Type of access control mechanism'
+    )
+    name = models.CharField(
+        max_length=200,
+        help_text='Control mechanism name (e.g., "Policy-42", "Door-Controller-A")'
+    )
+    description = models.TextField(
         blank=True,
-        related_name='rbac_assignments'
-    )
-    device = models.ForeignKey(
-        'dcim.Device',
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-        related_name='rbac_assignments'
-    )
-    service_account = models.ForeignKey(
-        ServiceAccount,
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-        related_name='rbac_assignments'
+        help_text='How this control method works'
     )
     
-    assignment_type = models.CharField(
-        max_length=20,
-        choices=AssignmentTypeChoices,
-        default=AssignmentTypeChoices.DIRECT,
-        help_text='How the permission was assigned'
-    )
-    
-    # Link to Azure group if inherited
+    # The key connection: which Azure group provides access
     azure_group = models.ForeignKey(
         AzureGroup,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='rbac_assignments',
-        help_text='Azure group providing this permission (if applicable)'
+        on_delete=models.CASCADE,
+        related_name='enables_access_via',
+        help_text='Azure group that provides access through this method'
     )
     
-    justification = models.TextField(
+    # Access details
+    access_level = models.CharField(
+        max_length=20,
+        choices=AccessLevelChoices,
+        default=AccessLevelChoices.READ,
+        help_text='Level of access granted'
+    )
+    
+    # Technical details (flexible JSON for different control types)
+    configuration = models.JSONField(
+        default=dict,
         blank=True,
-        help_text='Business justification for this permission'
+        help_text='Type-specific configuration details'
     )
-    assigned_date = models.DateTimeField(
-        auto_now_add=True,
-        help_text='When permission was assigned'
-    )
-    expires_date = models.DateTimeField(
-        null=True,
-        blank=True,
-        help_text='When permission expires (optional)'
-    )
-    assigned_by = models.ForeignKey(
-        'tenancy.Contact',
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='assigned_rbac_permissions',
-        help_text='Who assigned this permission'
-    )
+    
     is_active = models.BooleanField(
         default=True,
-        help_text='Whether assignment is currently active'
+        help_text='Whether this control method is currently active'
+    )
+    last_verified = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text='When this configuration was last verified'
     )
     
     class Meta:
-        ordering = ['-assigned_date']
-        verbose_name = 'RBAC Assignment'
-        verbose_name_plural = 'RBAC Assignments'
+        ordering = ['resource', 'name']
+        verbose_name = 'Access Control Method'
+        verbose_name_plural = 'Access Control Methods'
+        unique_together = [['resource', 'name']]
         indexes = [
-            models.Index(fields=['permission', 'is_active']),
-            models.Index(fields=['expires_date']),
-            models.Index(fields=['assigned_date']),
+            models.Index(fields=['resource', 'is_active']),
+            models.Index(fields=['control_type']),
+            models.Index(fields=['azure_group']),
         ]
     
-    def clean(self):
-        # Ensure exactly one assignee is specified
-        assignees = [self.contact, self.device, self.service_account]
-        assignee_count = sum(1 for a in assignees if a is not None)
-        
-        if assignee_count == 0:
-            raise ValidationError("Must specify one assignee (contact, device, or service account)")
-        if assignee_count > 1:
-            raise ValidationError("Cannot specify multiple assignees")
-    
-    @property
-    def assignee(self):
-        """Return the assigned entity (contact, device, or service account)."""
-        return self.contact or self.device or self.service_account
-    
-    @property
-    def is_expired(self):
-        """Check if assignment has expired."""
-        if not self.expires_date:
-            return False
-        return timezone.now() > self.expires_date
-    
-    @property
-    def is_expiring_soon(self):
-        """Check if assignment expires within 30 days."""
-        if not self.expires_date:
-            return False
-        return timezone.now() + timedelta(days=30) > self.expires_date
-    
     def __str__(self):
-        assignee = self.assignee
-        return f'{assignee.name if assignee else "Unknown"} - {self.permission.name}'
+        return f'{self.resource.name}: {self.name}'
     
     def get_absolute_url(self):
-        return reverse('plugins:netbox_azure_groups:rbacassignment', args=[self.pk])
+        return reverse('plugins:netbox_azure_groups:accesscontrolmethod', args=[self.pk])
+
+
+class GrantedViaChoices(ChoiceSet):
+    DIRECT_MEMBERSHIP = 'direct_membership'
+    NESTED_MEMBERSHIP = 'nested_membership'
+    INHERITED = 'inherited'
+    
+    CHOICES = [
+        (DIRECT_MEMBERSHIP, 'Direct Group Membership'),
+        (NESTED_MEMBERSHIP, 'Nested Group Membership'),
+        (INHERITED, 'Inherited Permission'),
+    ]
+
+
+class AccessGrant(NetBoxModel):
+    """Computed/tracked access grants showing the full access chain."""
+    
+    # The access chain: Resource ← Control Method ← Azure Group ← Contact
+    resource = models.ForeignKey(
+        ProtectedResource,
+        on_delete=models.CASCADE,
+        related_name='access_grants'
+    )
+    contact = models.ForeignKey(
+        'tenancy.Contact',
+        on_delete=models.CASCADE,
+        related_name='access_grants'
+    )
+    azure_group = models.ForeignKey(
+        AzureGroup,
+        on_delete=models.CASCADE,
+        related_name='access_grants'
+    )
+    control_method = models.ForeignKey(
+        AccessControlMethod,
+        on_delete=models.CASCADE,
+        related_name='access_grants'
+    )
+    
+    # Grant metadata
+    access_level = models.CharField(
+        max_length=20,
+        choices=AccessLevelChoices,
+        help_text='Level of access granted (inherited from control method)'
+    )
+    granted_via = models.CharField(
+        max_length=30,
+        choices=GrantedViaChoices,
+        default=GrantedViaChoices.DIRECT_MEMBERSHIP,
+        help_text='How the access was granted'
+    )
+    
+    # Audit info
+    first_granted = models.DateTimeField(
+        auto_now_add=True,
+        help_text='When access was first granted'
+    )
+    last_verified = models.DateTimeField(
+        auto_now=True,
+        help_text='When access was last verified'
+    )
+    is_active = models.BooleanField(
+        default=True,
+        help_text='Whether access is currently active'
+    )
+    
+    class Meta:
+        ordering = ['-first_granted']
+        verbose_name = 'Access Grant'
+        verbose_name_plural = 'Access Grants'
+        unique_together = [['resource', 'contact', 'azure_group', 'control_method']]
+        indexes = [
+            models.Index(fields=['resource', 'is_active']),
+            models.Index(fields=['contact', 'is_active']),
+            models.Index(fields=['azure_group']),
+            models.Index(fields=['first_granted']),
+        ]
+    
+    def __str__(self):
+        return f'{self.contact.name} → {self.resource.name} (via {self.azure_group.name})'
+    
+    def get_absolute_url(self):
+        return reverse('plugins:netbox_azure_groups:accessgrant', args=[self.pk])
