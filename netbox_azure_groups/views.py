@@ -9,9 +9,20 @@ class AzureGroupView(generic.ObjectView):
     queryset = models.AzureGroup.objects.prefetch_related('tags')
 
     def get_extra_context(self, request, instance):
+        # Get actual memberships and ownerships from related models
+        contact_memberships = instance.memberships.filter(contact__isnull=False).select_related('contact')
+        device_memberships = instance.memberships.filter(device__isnull=False).select_related('device')
+        contact_ownerships = instance.ownerships.all().select_related('contact')
+        
+        # Calculate actual counts
+        total_member_count = contact_memberships.count() + device_memberships.count()
+        
         return {
-            'total_member_count': instance.member_count,
-            'total_owner_count': instance.owner_count,
+            'total_member_count': total_member_count,
+            'total_owner_count': contact_ownerships.count(),
+            'contact_memberships': contact_memberships,
+            'device_memberships': device_memberships,
+            'contact_ownerships': contact_ownerships,
         }
 
 
