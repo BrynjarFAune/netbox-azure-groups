@@ -255,7 +255,8 @@ class GroupMembership(NetBoxModel):
         return f'{self.group.name} - {member.name}'
 
     def get_absolute_url(self) -> str:
-        return reverse('plugins:netbox_azure_groups:groupmembership', args=[self.pk])
+        # No detail view for memberships, return to group detail
+        return self.group.get_absolute_url()
 
 
 class GroupOwnership(NetBoxModel):
@@ -283,6 +284,7 @@ class GroupOwnership(NetBoxModel):
         return f'{self.group.name} - Owner: {self.contact.name}'
 
     def get_absolute_url(self) -> str:
-        return reverse('plugins:netbox_azure_groups:groupownership', args=[self.pk])
+        # No detail view for ownerships, return to group detail
+        return self.group.get_absolute_url()
 
 
