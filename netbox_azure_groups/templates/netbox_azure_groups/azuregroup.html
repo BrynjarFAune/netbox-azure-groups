@@ -1,5 +1,25 @@
 {% extends 'generic/object.html' %}
 {% load render_table from django_tables2 %}
+{% load buttons %}
+{% load perms %}
+
+{# Override control buttons to hide clone/edit - only show delete and view buttons #}
+{% block control-buttons %}
+    {% block extra_controls %}{% endblock %}
+
+    {# Default buttons #}
+    {% if perms.extras.add_bookmark and object.bookmarks %}
+        {% bookmark_button object %}
+    {% endif %}
+    {% if perms.extras.add_subscription and object.subscriptions %}
+        {% subscribe_button object %}
+    {% endif %}
+    {# Skip clone button - no azuregroup_add URL #}
+    {# Skip edit button - read-only mode #}
+    {% if request.user|can_delete:object %}
+        {% delete_button object %}
+    {% endif %}
+{% endblock control-buttons %}
 
 {% block content %}
 <div class="row mb-3">

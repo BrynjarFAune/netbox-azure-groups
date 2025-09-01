@@ -3,9 +3,9 @@ from datetime import timedelta
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from netbox.api.viewsets import NetBoxModelViewSet
-from ..models import AzureGroup
+from ..models import AzureGroup, GroupMembership, GroupOwnership
 from ..models.azure_groups import GroupTypeChoices, GroupSourceChoices
-from .serializers import AzureGroupSerializer
+from .serializers import AzureGroupSerializer, GroupMembershipSerializer, GroupOwnershipSerializer
 
 
 class AzureGroupViewSet(NetBoxModelViewSet):
@@ -51,3 +51,15 @@ class AzureGroupViewSet(NetBoxModelViewSet):
             'stale_groups': stale_groups.count(),
             'health': 'healthy' if not stale_groups.exists() else 'stale'
         })
+
+
+class GroupMembershipViewSet(NetBoxModelViewSet):
+    queryset = GroupMembership.objects.all().order_by('pk')
+    serializer_class = GroupMembershipSerializer
+    filterset_fields = ['group', 'contact', 'device', 'membership_type']
+
+
+class GroupOwnershipViewSet(NetBoxModelViewSet):
+    queryset = GroupOwnership.objects.all().order_by('pk')
+    serializer_class = GroupOwnershipSerializer
+    filterset_fields = ['group', 'contact']

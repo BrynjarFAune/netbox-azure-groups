@@ -24,7 +24,7 @@ class ContactAzureGroupsExtension(PluginTemplateExtension):
         memberships = contact.azure_group_memberships.select_related('group')
         
         # Get groups this contact owns (direct ForeignKey relationship)
-        ownerships = contact.azure_group_ownerships.select_related('group')
+        ownerships = contact.owned_azure_groups.select_related('group')
         
         logger.warning(f"Found {memberships.count()} memberships and {ownerships.count()} ownerships for contact {contact.pk}")
         

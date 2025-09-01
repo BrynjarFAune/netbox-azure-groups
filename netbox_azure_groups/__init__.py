@@ -10,6 +10,9 @@ class AzureGroupsConfig(PluginConfig):
     base_url = 'azure-groups'
     required_settings = []
     
+    # Explicitly define navigation menu
+    navigation = 'navigation.menus'
+    
     # Plugin-specific settings
     default_settings = {
         'allow_manual_creation': False,  # Prevent UI group creation in production

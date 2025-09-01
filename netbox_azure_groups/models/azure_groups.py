@@ -232,6 +232,7 @@ class GroupMembership(NetBoxModel):
     
     
     class Meta:
+        ordering = ['pk']
         unique_together = [
             ['group', 'contact'],
             ['group', 'device'],
@@ -273,6 +274,7 @@ class GroupOwnership(NetBoxModel):
     assigned_date = models.DateTimeField(auto_now_add=True)
     
     class Meta:
+        ordering = ['pk']
         unique_together = [['group', 'contact']]
         verbose_name = 'Group Ownership'
         verbose_name_plural = 'Group Ownerships'
