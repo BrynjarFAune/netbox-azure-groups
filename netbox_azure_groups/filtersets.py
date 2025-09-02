@@ -1,6 +1,6 @@
 import django_filters
 from django_filters import filterset
-from .models import AzureGroup, GroupMembership, GroupOwnership, ProtectedResource
+from .models import AzureGroup, GroupMembership, GroupOwnership, ProtectedResource, AccessControlMethod
 
 
 # Minimal filtersets for migration purposes only
@@ -39,4 +39,17 @@ class ProtectedResourceFilterSet(filterset.FilterSet):
         fields = [
             'name', 'resource_type', 'criticality', 
             'business_unit', 'is_active', 'owner_contact'
+        ]
+
+
+class AccessControlMethodFilterSet(filterset.FilterSet):
+    name = django_filters.CharFilter(lookup_expr='icontains')
+    resource = django_filters.ModelChoiceFilter(queryset=ProtectedResource.objects.all())
+    azure_group = django_filters.ModelChoiceFilter(queryset=AzureGroup.objects.all())
+    
+    class Meta:
+        model = AccessControlMethod
+        fields = [
+            'name', 'resource', 'control_type', 'azure_group',
+            'access_level', 'is_active'
         ]

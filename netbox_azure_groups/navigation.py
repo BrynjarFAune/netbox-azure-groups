@@ -24,6 +24,17 @@ menus = [
                         )
                     ]
                 ),
+                PluginMenuItem(
+                    link='plugins:netbox_azure_groups:accesscontrolmethod_list',
+                    link_text='Access Control Methods',
+                    buttons=[
+                        PluginMenuItem(
+                            link='plugins:netbox_azure_groups:accesscontrolmethod_add',
+                            link_text='Add',
+                            icon_class='mdi mdi-plus-thick'
+                        )
+                    ]
+                ),
             ])
         ],
         icon_class='mdi mdi-shield-lock'

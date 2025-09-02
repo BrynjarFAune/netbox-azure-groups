@@ -18,6 +18,14 @@ urlpatterns = [
     path('protected-resources/<int:pk>/delete/', views.ProtectedResourceDeleteView.as_view(), name='protectedresource_delete'),
     path('protected-resources/<int:pk>/changelog/', views.ProtectedResourceChangeLogView.as_view(), name='protectedresource_changelog'),
     
+    # Access Control Methods - Full CRUD
+    path('access-control-methods/', views.AccessControlMethodListView.as_view(), name='accesscontrolmethod_list'),
+    path('access-control-methods/<int:pk>/', views.AccessControlMethodView.as_view(), name='accesscontrolmethod'),
+    path('access-control-methods/add/', views.AccessControlMethodEditView.as_view(), name='accesscontrolmethod_add'),
+    path('access-control-methods/<int:pk>/edit/', views.AccessControlMethodEditView.as_view(), name='accesscontrolmethod_edit'),
+    path('access-control-methods/<int:pk>/delete/', views.AccessControlMethodDeleteView.as_view(), name='accesscontrolmethod_delete'),
+    path('access-control-methods/<int:pk>/changelog/', views.AccessControlMethodChangeLogView.as_view(), name='accesscontrolmethod_changelog'),
+    
     # API URLs
     path('api/', include('netbox_azure_groups.api.urls')),
 ]

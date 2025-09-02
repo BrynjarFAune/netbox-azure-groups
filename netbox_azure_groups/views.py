@@ -89,3 +89,51 @@ class ProtectedResourceDeleteView(generic.ObjectDeleteView):
 
 class ProtectedResourceChangeLogView(generic.ObjectChangeLogView):
     queryset = models.ProtectedResource.objects.all()
+
+
+# AccessControlMethod Views
+
+class AccessControlMethodView(generic.ObjectView):
+    queryset = models.AccessControlMethod.objects.prefetch_related('tags')
+    
+    def get_extra_context(self, request, instance):
+        # Get related FortiGate policy if this is a firewall policy control method
+        fortigate_policy = None
+        if instance.control_type == 'fortigate_policy':
+            try:
+                policy_id = instance.configuration.get('policy_id')
+                if policy_id:
+                    fortigate_policy = models.FortiGatePolicy.objects.get(policy_id=policy_id)
+            except (models.FortiGatePolicy.DoesNotExist, KeyError):
+                pass
+        
+        # Get access grants through this method
+        access_grants = instance.access_grants.all().select_related('contact')
+        
+        return {
+            'fortigate_policy': fortigate_policy,
+            'access_grants_count': access_grants.count(),
+            'access_grants': access_grants[:10],  # Show first 10
+        }
+
+
+class AccessControlMethodListView(generic.ObjectListView):
+    queryset = models.AccessControlMethod.objects.select_related('resource', 'azure_group').annotate(
+        grant_count=Count('access_grants')
+    )
+    table = tables.AccessControlMethodTable
+    filterset = filtersets.AccessControlMethodFilterSet
+    filterset_form = forms.AccessControlMethodFilterForm
+
+
+class AccessControlMethodEditView(generic.ObjectEditView):
+    queryset = models.AccessControlMethod.objects.all()
+    form = forms.AccessControlMethodForm
+
+
+class AccessControlMethodDeleteView(generic.ObjectDeleteView):
+    queryset = models.AccessControlMethod.objects.all()
+
+
+class AccessControlMethodChangeLogView(generic.ObjectChangeLogView):
+    queryset = models.AccessControlMethod.objects.all()

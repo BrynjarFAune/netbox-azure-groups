@@ -1,0 +1,199 @@
+{% extends 'generic/object.html' %}
+{% load render_table from django_tables2 %}
+{% load buttons %}
+{% load perms %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col col-md-6">
+        <div class="card">
+            <h5 class="card-header">Access Control Method</h5>
+            <div class="card-body">
+                <table class="table table-hover attr-table">
+                    <tr>
+                        <th scope="row">Name</th>
+                        <td>{{ object.name }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Protected Resource</th>
+                        <td>
+                            <a href="{{ object.resource.get_absolute_url }}">{{ object.resource.name }}</a>
+                            <span class="badge bg-primary ms-2">{{ object.resource.get_resource_type_display }}</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Control Type</th>
+                        <td>
+                            <span class="badge bg-secondary">{{ object.get_control_type_display }}</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Azure Group</th>
+                        <td>
+                            <a href="{{ object.azure_group.get_absolute_url }}">{{ object.azure_group.name }}</a>
+                            {% if object.azure_group.is_security_enabled %}
+                                <i class="mdi mdi-shield-check text-success" title="Security Enabled"></i>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Access Level</th>
+                        <td>
+                            {% if object.access_level == 'admin' %}
+                                <span class="badge bg-danger">{{ object.get_access_level_display }}</span>
+                            {% elif object.access_level == 'full' %}
+                                <span class="badge bg-warning">{{ object.get_access_level_display }}</span>
+                            {% else %}
+                                <span class="badge bg-info">{{ object.get_access_level_display }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Status</th>
+                        <td>
+                            {% if object.is_active %}
+                                <i class="mdi mdi-check-circle text-success"></i> Active
+                            {% else %}
+                                <i class="mdi mdi-close-circle text-danger"></i> Inactive
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Last Verified</th>
+                        <td>
+                            {% if object.last_verified %}
+                                {{ object.last_verified|date:"M d, Y H:i" }}
+                            {% else %}
+                                <span class="text-muted">Never verified</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col col-md-6">
+        {% if object.description %}
+        <div class="card">
+            <h5 class="card-header">Description</h5>
+            <div class="card-body">
+                {{ object.description|linebreaksbr }}
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if object.configuration %}
+        <div class="card {% if object.description %}mt-3{% endif %}">
+            <h5 class="card-header">Configuration</h5>
+            <div class="card-body">
+                <pre><code>{{ object.configuration|pprint }}</code></pre>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if fortigate_policy %}
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="card">
+            <h5 class="card-header">
+                <i class="mdi mdi-firewall text-danger"></i> Related FortiGate Policy
+            </h5>
+            <div class="card-body">
+                <table class="table table-hover">
+                    <tr>
+                        <th>Policy ID</th>
+                        <td>{{ fortigate_policy.policy_id }}</td>
+                    </tr>
+                    <tr>
+                        <th>Policy Name</th>
+                        <td>{{ fortigate_policy.name|default:"-" }}</td>
+                    </tr>
+                    <tr>
+                        <th>Action</th>
+                        <td>
+                            <span class="badge bg-success">{{ fortigate_policy.get_action_display }}</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Source</th>
+                        <td>{{ fortigate_policy.source_interfaces_display }} ({{ fortigate_policy.source_addresses_display }})</td>
+                    </tr>
+                    <tr>
+                        <th>Destination</th>
+                        <td>{{ fortigate_policy.destination_interfaces_display }} ({{ fortigate_policy.destination_addresses_display }})</td>
+                    </tr>
+                    <tr>
+                        <th>Services</th>
+                        <td>{{ fortigate_policy.services_display }}</td>
+                    </tr>
+                    <tr>
+                        <th>Description</th>
+                        <td>{{ fortigate_policy.ai_description }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <h5 class="card-header">
+                <i class="mdi mdi-account-key text-success"></i> Access Grants Through This Method
+                <span class="badge bg-primary ms-2">{{ access_grants_count }}</span>
+            </h5>
+            <div class="card-body">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Contact</th>
+                            <th>Access Level</th>
+                            <th>Granted Via</th>
+                            <th>First Granted</th>
+                            <th>Active</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for grant in access_grants %}
+                        <tr>
+                            <td>
+                                <a href="{{ grant.contact.get_absolute_url }}">{{ grant.contact }}</a>
+                            </td>
+                            <td>
+                                <span class="badge bg-info">{{ grant.get_access_level_display }}</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary">{{ grant.get_granted_via_display }}</span>
+                            </td>
+                            <td>{{ grant.first_granted|date:"M d, Y" }}</td>
+                            <td>
+                                {% if grant.is_active %}
+                                    <i class="mdi mdi-check-circle text-success"></i>
+                                {% else %}
+                                    <i class="mdi mdi-close-circle text-danger"></i>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-muted">No access grants through this method</td>
+                        </tr>
+                        {% endfor %}
+                        {% if access_grants_count > 10 %}
+                        <tr>
+                            <td colspan="5" class="text-center">
+                                <small class="text-muted">Showing first 10 of {{ access_grants_count }} grants</small>
+                            </td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

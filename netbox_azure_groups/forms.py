@@ -183,3 +183,100 @@ class ProtectedResourceFilterForm(NetBoxModelFilterSetForm):
     )
     business_unit = forms.CharField(required=False)
     is_active = forms.BooleanField(required=False)
+
+
+class AccessControlMethodForm(NetBoxModelForm):
+    """Form for creating and editing Access Control Methods."""
+    
+    # Add a helper field for FortiGate policy selection
+    fortigate_policy = forms.ModelChoiceField(
+        queryset=FortiGatePolicy.objects.all(),
+        required=False,
+        help_text='Select a FortiGate policy for firewall-based access control',
+        empty_label='-- Select FortiGate Policy --'
+    )
+    
+    class Meta:
+        model = AccessControlMethod
+        fields = [
+            'resource', 'control_type', 'name', 'description', 'azure_group',
+            'access_level', 'configuration', 'is_active', 'last_verified', 'tags'
+        ]
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 3}),
+            'configuration': forms.Textarea(attrs={
+                'rows': 4,
+                'placeholder': '{"policy_id": 123, "additional_settings": {}}'
+            }),
+            'last_verified': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Add helpful descriptions
+        self.fields['name'].help_text = 'Name of the control mechanism (e.g., "Policy-42", "Door-A")'
+        self.fields['configuration'].help_text = 'JSON configuration specific to this control type'
+        
+        # Group resources by type for better UX
+        if 'resource' in self.fields:
+            self.fields['resource'].queryset = ProtectedResource.objects.select_related('owner_contact')
+        
+        # Group Azure groups by type 
+        if 'azure_group' in self.fields:
+            self.fields['azure_group'].queryset = AzureGroup.objects.filter(is_security_enabled=True)
+        
+        # If editing existing FortiGate policy method, populate the helper field
+        if self.instance.pk and self.instance.control_type == 'fortigate_policy':
+            try:
+                policy_id = self.instance.configuration.get('policy_id')
+                if policy_id:
+                    policy = FortiGatePolicy.objects.get(policy_id=policy_id)
+                    self.fields['fortigate_policy'].initial = policy
+            except (FortiGatePolicy.DoesNotExist, KeyError):
+                pass
+    
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        
+        # Handle FortiGate policy helper field
+        if self.cleaned_data.get('fortigate_policy') and instance.control_type == 'fortigate_policy':
+            policy = self.cleaned_data['fortigate_policy']
+            # Auto-populate configuration with policy ID
+            if not instance.configuration:
+                instance.configuration = {}
+            instance.configuration['policy_id'] = policy.policy_id
+            
+            # Auto-populate name if empty
+            if not instance.name:
+                instance.name = f"Policy-{policy.policy_id}"
+        
+        if commit:
+            instance.save()
+            self.save_m2m()
+        
+        return instance
+
+
+class AccessControlMethodFilterForm(NetBoxModelFilterSetForm):
+    model = AccessControlMethod
+    
+    resource = forms.ModelChoiceField(
+        queryset=ProtectedResource.objects.all(),
+        required=False,
+        label='Protected Resource'
+    )
+    control_type = forms.MultipleChoiceField(
+        choices=ControlTypeChoices.CHOICES,
+        required=False
+    )
+    azure_group = forms.ModelChoiceField(
+        queryset=AzureGroup.objects.all(),
+        required=False,
+        label='Azure Group'
+    )
+    access_level = forms.MultipleChoiceField(
+        choices=AccessLevelChoices.CHOICES,
+        required=False
+    )
+    is_active = forms.BooleanField(required=False)
