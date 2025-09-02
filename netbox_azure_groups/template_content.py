@@ -1,7 +1,6 @@
 import logging
 from netbox.plugins import PluginTemplateExtension
-# Temporarily disabled during refactoring
-# from .models import ContactGroupMembership, ContactGroupOwnership, DeviceGroupMembership
+from .models import ProtectedResource, AccessControlMethod
 
 logger = logging.getLogger(__name__)
 
@@ -60,5 +59,114 @@ class DeviceAzureGroupsExtension(PluginTemplateExtension):
         })
 
 
-# Re-enable template extensions with new direct ForeignKey models
-template_extensions = [ContactAzureGroupsExtension, DeviceAzureGroupsExtension]
+class AccessControlExtension(PluginTemplateExtension):
+    """Base class for access control template extensions"""
+    
+    def get_access_control_context(self, obj_name, obj_instance):
+        """Get access control context for any NetBox object"""
+        
+        # Find protected resources that might be related to this object
+        related_resources = []
+        
+        # Look for resources with matching names or descriptions
+        name_matches = ProtectedResource.objects.filter(name__icontains=obj_name)
+        related_resources.extend(name_matches)
+        
+        # For devices, also check by hostname/FQDN
+        if hasattr(obj_instance, 'primary_ip4') and obj_instance.primary_ip4:
+            ip_matches = ProtectedResource.objects.filter(base_url__icontains=str(obj_instance.primary_ip4.address.ip))
+            related_resources.extend(ip_matches)
+        
+        # Get access control methods for these resources
+        access_methods = []
+        for resource in related_resources:
+            methods = AccessControlMethod.objects.filter(resource=resource).select_related(
+                'azure_group', 'resource'
+            )
+            access_methods.extend(methods)
+        
+        return {
+            'related_resources': list(set(related_resources)),  # Remove duplicates
+            'access_methods': list(set(access_methods)),
+            'has_access_control': bool(related_resources or access_methods)
+        }
+
+
+class DeviceAccessControlExtension(AccessControlExtension):
+    model = 'dcim.device'
+
+    def right_page(self):
+        device = self.context['object']
+        
+        from dcim.models import Device
+        if not isinstance(device, Device):
+            return ""
+        
+        context = self.get_access_control_context(device.name, device)
+        context['device'] = device
+        
+        return self.render('netbox_azure_groups/inc/access_control_tab.html', context)
+
+
+class VirtualMachineAccessControlExtension(AccessControlExtension):
+    model = 'virtualization.virtualmachine'
+
+    def right_page(self):
+        vm = self.context['object']
+        
+        from virtualization.models import VirtualMachine
+        if not isinstance(vm, VirtualMachine):
+            return ""
+        
+        context = self.get_access_control_context(vm.name, vm)
+        context['vm'] = vm
+        
+        return self.render('netbox_azure_groups/inc/access_control_tab.html', context)
+
+
+class SiteAccessControlExtension(AccessControlExtension):
+    model = 'dcim.site'
+
+    def right_page(self):
+        site = self.context['object']
+        
+        from dcim.models import Site
+        if not isinstance(site, Site):
+            return ""
+        
+        context = self.get_access_control_context(site.name, site)
+        context['site'] = site
+        
+        return self.render('netbox_azure_groups/inc/access_control_tab.html', context)
+
+
+class ServiceAccessControlExtension(AccessControlExtension):
+    model = 'ipam.service'
+
+    def right_page(self):
+        service = self.context['object']
+        
+        # Import check for Service model
+        try:
+            from ipam.models import Service
+            if not isinstance(service, Service):
+                return ""
+        except ImportError:
+            # Service model may not exist in this NetBox version
+            return ""
+        
+        context = self.get_access_control_context(service.name, service)
+        context['service'] = service
+        
+        return self.render('netbox_azure_groups/inc/access_control_tab.html', context)
+
+
+# Re-enable template extensions with new direct ForeignKey models + access control extensions
+template_extensions = [
+    ContactAzureGroupsExtension, 
+    DeviceAzureGroupsExtension,
+    DeviceAccessControlExtension,
+    VirtualMachineAccessControlExtension, 
+    SiteAccessControlExtension,
+    ServiceAccessControlExtension
+]

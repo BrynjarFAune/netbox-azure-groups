@@ -1,0 +1,149 @@
+{% load helpers %}
+
+<!-- Access Control Information Tab -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <h5 class="card-header">
+                <i class="mdi mdi-shield-lock text-warning"></i> Access Control Information
+                {% if has_access_control %}
+                    <span class="badge bg-success ms-2">{{ access_methods|length }} method{{ access_methods|length|pluralize }}</span>
+                {% else %}
+                    <span class="badge bg-secondary ms-2">No access control configured</span>
+                {% endif %}
+            </h5>
+            <div class="card-body">
+                {% if has_access_control %}
+                    
+                    {% if related_resources %}
+                    <div class="mb-4">
+                        <h6 class="text-primary">
+                            <i class="mdi mdi-database-lock"></i> Protected Resources
+                            <span class="badge bg-info ms-1">{{ related_resources|length }}</span>
+                        </h6>
+                        <div class="row">
+                            {% for resource in related_resources %}
+                            <div class="col-md-6 mb-2">
+                                <div class="card">
+                                    <div class="card-body py-2">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <strong>
+                                                    <a href="{{ resource.get_absolute_url }}">{{ resource.name }}</a>
+                                                </strong>
+                                                <br>
+                                                <small class="text-muted">{{ resource.get_resource_type_display }}</small>
+                                            </div>
+                                            <div>
+                                                <span class="badge bg-secondary">{{ resource.resource_type }}</span>
+                                            </div>
+                                        </div>
+                                        {% if resource.description %}
+                                        <p class="text-muted mt-2 mb-0 small">{{ resource.description|truncatewords:15 }}</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if access_methods %}
+                    <div>
+                        <h6 class="text-success">
+                            <i class="mdi mdi-key-variant"></i> Access Control Methods
+                            <span class="badge bg-success ms-1">{{ access_methods|length }}</span>
+                        </h6>
+                        <div class="table-responsive">
+                            <table class="table table-hover table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Method Name</th>
+                                        <th>Resource</th>
+                                        <th>Azure Group</th>
+                                        <th>Access Level</th>
+                                        <th>Control Type</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for method in access_methods %}
+                                    <tr>
+                                        <td>
+                                            <a href="{{ method.get_absolute_url }}">{{ method.name }}</a>
+                                        </td>
+                                        <td>
+                                            <a href="{{ method.resource.get_absolute_url }}">{{ method.resource.name }}</a>
+                                            <br>
+                                            <small class="text-muted">{{ method.resource.get_resource_type_display }}</small>
+                                        </td>
+                                        <td>
+                                            <a href="{{ method.azure_group.get_absolute_url }}">{{ method.azure_group.name }}</a>
+                                            <br>
+                                            <small class="text-muted">{{ method.azure_group.members_count|default:0 }} members</small>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-info">{{ method.get_access_level_display }}</span>
+                                        </td>
+                                        <td>
+                                            {% if method.control_type == 'fortigate_policy' %}
+                                                <span class="badge bg-danger">
+                                                    <i class="mdi mdi-firewall"></i> FortiGate
+                                                </span>
+                                            {% elif method.control_type == 'azure_conditional_access' %}
+                                                <span class="badge bg-primary">
+                                                    <i class="mdi mdi-microsoft-azure"></i> Azure CA
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">{{ method.get_control_type_display }}</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Action Buttons -->
+                    <div class="mt-3">
+                        <div class="btn-group" role="group">
+                            <a href="{% url 'plugins:netbox_azure_groups:protectedresource_add' %}" class="btn btn-outline-primary btn-sm">
+                                <i class="mdi mdi-plus"></i> Create Protected Resource
+                            </a>
+                            <a href="{% url 'plugins:netbox_azure_groups:accesscontrolmethod_add' %}" class="btn btn-outline-success btn-sm">
+                                <i class="mdi mdi-key-plus"></i> Create Access Method
+                            </a>
+                        </div>
+                    </div>
+                    
+                {% else %}
+                    <!-- No access control configured -->
+                    <div class="text-center py-4">
+                        <i class="mdi mdi-shield-off text-muted display-4"></i>
+                        <h5 class="text-muted mt-2">No Access Control Configured</h5>
+                        <p class="text-muted">This {{ device.name|default:vm.name|default:site.name|default:service.name|default:"object" }} is not currently linked to any access control policies.</p>
+                        
+                        <div class="mt-3">
+                            <a href="{% url 'plugins:netbox_azure_groups:protectedresource_add' %}" class="btn btn-primary">
+                                <i class="mdi mdi-plus"></i> Create Protected Resource
+                            </a>
+                            <a href="{% url 'plugins:netbox_azure_groups:protectedresource_list' %}" class="btn btn-outline-secondary ms-2">
+                                <i class="mdi mdi-view-list"></i> Browse Resources
+                            </a>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <small class="text-muted">
+                                <i class="mdi mdi-information-outline"></i>
+                                To add access control, create a Protected Resource that matches this {{ device.name|default:vm.name|default:site.name|default:service.name|default:"object" }}, 
+                                then link it to Azure Groups through Access Control Methods.
+                            </small>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
