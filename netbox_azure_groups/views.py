@@ -50,7 +50,7 @@ class ProtectedResourceView(generic.ObjectView):
     
     def get_extra_context(self, request, instance):
         # Get access control methods and grants for this resource
-        access_methods = instance.access_control_methods.all().select_related('azure_group')
+        access_methods = instance.access_methods.all().select_related('azure_group')
         access_grants = instance.access_grants.all().select_related('contact', 'azure_group')
         
         # Get related FortiGate policies through access control methods
@@ -70,7 +70,7 @@ class ProtectedResourceView(generic.ObjectView):
 
 class ProtectedResourceListView(generic.ObjectListView):
     queryset = models.ProtectedResource.objects.annotate(
-        access_method_count=Count('access_control_methods'),
+        access_method_count=Count('access_methods'),
         grant_count=Count('access_grants')
     )
     table = tables.ProtectedResourceTable
