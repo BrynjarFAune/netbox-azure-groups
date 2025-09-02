@@ -12,7 +12,7 @@
     <div class="col-sm-4 col-md-3 text-end">
         <div class="btn-group" role="group">
             {% if request.user.is_authenticated %}
-                {% bookmark_button queryset %}
+                {% bookmark_button table.data %}
             {% endif %}
         </div>
     </div>

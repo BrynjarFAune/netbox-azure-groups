@@ -221,7 +221,9 @@ class AccessGrantListView(generic.ObjectListView):
     
     def get_extra_context(self, request):
         # Get some statistics for the list view
-        queryset = self.filterset.qs if self.filterset else self.queryset
+        queryset = self.get_queryset()
+        if hasattr(self, 'filterset') and self.filterset:
+            queryset = self.filterset.qs
         
         stats = {
             'total_grants': queryset.count(),
