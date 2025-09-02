@@ -15,6 +15,10 @@ from .azure_groups import (
     ControlTypeChoices,
     AccessLevelChoices,
     GrantedViaChoices,
+    # FortiGate Integration Models
+    FortiGatePolicy,
+    PolicyActionChoices,
+    PolicyStatusChoices,
 )
 
 # Backward compatibility aliases for old model names
@@ -39,6 +43,10 @@ __all__ = [
     'ControlTypeChoices',
     'AccessLevelChoices',
     'GrantedViaChoices',
+    # FortiGate Integration Models
+    'FortiGatePolicy',
+    'PolicyActionChoices',
+    'PolicyStatusChoices',
     # Legacy aliases
     'ContactGroupMembership',
     'ContactGroupOwnership', 

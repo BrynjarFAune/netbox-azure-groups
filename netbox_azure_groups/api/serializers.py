@@ -2,7 +2,8 @@ from rest_framework import serializers
 from netbox.api.serializers import NetBoxModelSerializer
 from ..models import (
     AzureGroup, GroupMembership, GroupOwnership,
-    ProtectedResource, AccessControlMethod, AccessGrant
+    ProtectedResource, AccessControlMethod, AccessGrant,
+    FortiGatePolicy
 )
 
 
@@ -86,3 +87,21 @@ class AccessGrantSerializer(NetBoxModelSerializer):
             'created', 'last_updated', 'custom_fields', 'tags'
         ]
         read_only_fields = ['first_granted', 'last_verified', 'created', 'last_updated']
+
+
+# FortiGate Serializer
+
+class FortiGatePolicySerializer(NetBoxModelSerializer):
+    url = serializers.HyperlinkedIdentityField(view_name='plugins-api:netbox_azure_groups-api:fortigatepolicy-detail')
+
+    class Meta:
+        model = FortiGatePolicy
+        fields = [
+            'id', 'url', 'display', 'policy_id', 'name', 'uuid', 'status', 'action',
+            'source_interfaces', 'destination_interfaces', 'source_addresses', 'destination_addresses',
+            'services', 'nat_enabled', 'nat_type', 'nat_outbound_interface', 'nat_pool_name',
+            'utm_status', 'profile_group', 'log_traffic', 'schedule', 'groups',
+            'comments', 'ai_description', 'fortigate_host', 'vdom', 'last_fetched',
+            'access_control_method', 'created', 'last_updated', 'custom_fields', 'tags'
+        ]
+        read_only_fields = ['last_fetched', 'created', 'last_updated']

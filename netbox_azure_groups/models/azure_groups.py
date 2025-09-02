@@ -598,3 +598,259 @@ class AccessGrant(NetBoxModel):
     
     def get_absolute_url(self):
         return reverse('plugins:netbox_azure_groups:accessgrant', args=[self.pk])
+
+
+# FortiGate Integration Models
+
+class PolicyActionChoices(ChoiceSet):
+    ACCEPT = 'accept'
+    DENY = 'deny' 
+    IPSEC = 'ipsec'
+    
+    CHOICES = [
+        (ACCEPT, 'Accept/Allow'),
+        (DENY, 'Deny/Block'),
+        (IPSEC, 'IPSec'),
+    ]
+
+
+class PolicyStatusChoices(ChoiceSet):
+    ENABLE = 'enable'
+    DISABLE = 'disable'
+    
+    CHOICES = [
+        (ENABLE, 'Enabled'),
+        (DISABLE, 'Disabled'),
+    ]
+
+
+class FortiGatePolicy(NetBoxModel):
+    """FortiGate firewall policy representation."""
+    
+    # Basic Policy Info
+    policy_id = models.IntegerField(
+        unique=True,
+        help_text='FortiGate policy ID number'
+    )
+    name = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text='Policy name/description'
+    )
+    uuid = models.CharField(
+        max_length=36,
+        blank=True,
+        help_text='FortiGate policy UUID'
+    )
+    status = models.CharField(
+        max_length=10,
+        choices=PolicyStatusChoices,
+        default=PolicyStatusChoices.ENABLE,
+        help_text='Policy status (enabled/disabled)'
+    )
+    action = models.CharField(
+        max_length=10,
+        choices=PolicyActionChoices,
+        default=PolicyActionChoices.ACCEPT,
+        help_text='Policy action (accept/deny/ipsec)'
+    )
+    
+    # Source/Destination Interfaces  
+    source_interfaces = models.JSONField(
+        default=list,
+        blank=True,
+        help_text='Source interfaces (e.g., ["lan", "dmz"])'
+    )
+    destination_interfaces = models.JSONField(
+        default=list, 
+        blank=True,
+        help_text='Destination interfaces (e.g., ["wan1", "wan2"])'
+    )
+    
+    # Source/Destination Addresses
+    source_addresses = models.JSONField(
+        default=list,
+        blank=True,
+        help_text='Source address objects (e.g., ["all", "internal_network"])'
+    )
+    destination_addresses = models.JSONField(
+        default=list,
+        blank=True,
+        help_text='Destination address objects (e.g., ["all", "web_servers"])'
+    )
+    
+    # Services/Ports
+    services = models.JSONField(
+        default=list,
+        blank=True,
+        help_text='Service objects (e.g., ["ALL", "HTTP", "HTTPS"])'
+    )
+    
+    # NAT Configuration
+    nat_enabled = models.BooleanField(
+        default=False,
+        help_text='Whether NAT is enabled for this policy'
+    )
+    nat_type = models.CharField(
+        max_length=20,
+        blank=True,
+        choices=[
+            ('snat', 'Source NAT'),
+            ('dnat', 'Destination NAT'),
+            ('both', 'Both SNAT and DNAT'),
+        ],
+        help_text='Type of NAT applied'
+    )
+    nat_outbound_interface = models.CharField(
+        max_length=50,
+        blank=True,
+        help_text='Outbound interface for NAT'
+    )
+    nat_pool_name = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text='NAT pool name if using IP pool'
+    )
+    
+    # Security Profiles
+    utm_status = models.CharField(
+        max_length=10,
+        choices=[('enable', 'Enabled'), ('disable', 'Disabled')],
+        default='disable',
+        help_text='UTM (security profiles) status'
+    )
+    profile_group = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text='Security profile group name'
+    )
+    
+    # Logging
+    log_traffic = models.CharField(
+        max_length=10,
+        choices=[('all', 'All'), ('utm', 'UTM'), ('disable', 'Disabled')],
+        default='utm',
+        help_text='Traffic logging setting'
+    )
+    
+    # Schedule and User Authentication  
+    schedule = models.CharField(
+        max_length=100,
+        default='always',
+        help_text='Schedule name (default: always)'
+    )
+    groups = models.JSONField(
+        default=list,
+        blank=True,
+        help_text='User groups for authentication'
+    )
+    
+    # Comments and AI Description
+    comments = models.TextField(
+        blank=True,
+        help_text='FortiGate policy comments/notes'
+    )
+    ai_description = models.TextField(
+        blank=True,
+        help_text='AI-generated description of what this policy does'
+    )
+    
+    # Metadata
+    fortigate_host = models.CharField(
+        max_length=100,
+        help_text='FortiGate hostname/IP this policy came from'
+    )
+    vdom = models.CharField(
+        max_length=50,
+        default='root',
+        help_text='FortiGate VDOM'
+    )
+    last_fetched = models.DateTimeField(
+        auto_now=True,
+        help_text='When this policy was last fetched from FortiGate'
+    )
+    
+    # Link to Access Control (optional)
+    access_control_method = models.ForeignKey(
+        AccessControlMethod,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='fortigate_policies',
+        help_text='Associated access control method if this policy provides resource access'
+    )
+    
+    class Meta:
+        ordering = ['policy_id']
+        verbose_name = 'FortiGate Policy'
+        verbose_name_plural = 'FortiGate Policies'
+        unique_together = [['fortigate_host', 'vdom', 'policy_id']]
+        indexes = [
+            models.Index(fields=['policy_id']),
+            models.Index(fields=['action', 'status']),
+            models.Index(fields=['fortigate_host', 'vdom']),
+            models.Index(fields=['last_fetched']),
+        ]
+    
+    def __str__(self):
+        name_part = f": {self.name}" if self.name else ""
+        return f"Policy {self.policy_id}{name_part} ({self.get_action_display()})"
+    
+    @property
+    def source_interfaces_display(self):
+        """Human-readable source interfaces"""
+        return ', '.join(self.source_interfaces) if self.source_interfaces else 'Any'
+    
+    @property
+    def destination_interfaces_display(self):
+        """Human-readable destination interfaces"""
+        return ', '.join(self.destination_interfaces) if self.destination_interfaces else 'Any'
+    
+    @property
+    def source_addresses_display(self):
+        """Human-readable source addresses"""
+        return ', '.join(self.source_addresses) if self.source_addresses else 'Any'
+    
+    @property
+    def destination_addresses_display(self):
+        """Human-readable destination addresses"""  
+        return ', '.join(self.destination_addresses) if self.destination_addresses else 'Any'
+    
+    @property
+    def services_display(self):
+        """Human-readable services"""
+        return ', '.join(self.services) if self.services else 'Any'
+    
+    def generate_ai_description(self):
+        """Generate AI description of what this policy does"""
+        # Build description based on policy components
+        action_text = "allows" if self.action == "accept" else "blocks" if self.action == "deny" else f"applies {self.action} to"
+        
+        # Source description
+        src_text = f"traffic from {self.source_interfaces_display}"
+        if self.source_addresses and 'all' not in self.source_addresses:
+            src_text += f" ({self.source_addresses_display})"
+        
+        # Destination description  
+        dst_text = f"to {self.destination_interfaces_display}"
+        if self.destination_addresses and 'all' not in self.destination_addresses:
+            dst_text += f" ({self.destination_addresses_display})"
+        
+        # Services description
+        svc_text = f" using {self.services_display}" if self.services and 'ALL' not in self.services else ""
+        
+        # NAT description
+        nat_text = ""
+        if self.nat_enabled:
+            nat_text = f" with {self.nat_type.upper()} applied" if self.nat_type else " with NAT applied"
+        
+        description = f"This policy {action_text} {src_text} {dst_text}{svc_text}{nat_text}."
+        
+        # Add status info
+        if self.status == 'disable':
+            description += " (Currently disabled)"
+        
+        return description
+    
+    def get_absolute_url(self):
+        return reverse('plugins:netbox_azure_groups:fortigatePolicy', args=[self.pk])

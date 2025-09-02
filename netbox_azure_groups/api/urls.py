@@ -14,4 +14,7 @@ router.register('protected-resources', viewsets.ProtectedResourceViewSet)
 router.register('access-control-methods', viewsets.AccessControlMethodViewSet)
 router.register('access-grants', viewsets.AccessGrantViewSet)
 
+# FortiGate Integration
+router.register('fortigate-policies', viewsets.FortiGatePolicyViewSet)
+
 urlpatterns = router.urls

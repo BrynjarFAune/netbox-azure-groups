@@ -5,12 +5,14 @@ from rest_framework.response import Response
 from netbox.api.viewsets import NetBoxModelViewSet
 from ..models import (
     AzureGroup, GroupMembership, GroupOwnership,
-    ProtectedResource, AccessControlMethod, AccessGrant
+    ProtectedResource, AccessControlMethod, AccessGrant,
+    FortiGatePolicy
 )
 from ..models.azure_groups import GroupTypeChoices, GroupSourceChoices
 from .serializers import (
     AzureGroupSerializer, GroupMembershipSerializer, GroupOwnershipSerializer,
-    ProtectedResourceSerializer, AccessControlMethodSerializer, AccessGrantSerializer
+    ProtectedResourceSerializer, AccessControlMethodSerializer, AccessGrantSerializer,
+    FortiGatePolicySerializer
 )
 
 
@@ -210,4 +212,117 @@ class AccessGrantViewSet(NetBoxModelViewSet):
             },
             'unique_contacts_with_access': queryset.filter(is_active=True).values('contact').distinct().count(),
             'unique_resources_with_grants': queryset.filter(is_active=True).values('resource').distinct().count()
+        })
+
+
+# FortiGate ViewSet
+
+class FortiGatePolicyViewSet(NetBoxModelViewSet):
+    queryset = FortiGatePolicy.objects.all()
+    serializer_class = FortiGatePolicySerializer
+    filterset_fields = [
+        'policy_id', 'name', 'status', 'action', 'nat_enabled', 'utm_status',
+        'fortigate_host', 'vdom', 'access_control_method'
+    ]
+
+    @action(detail=False, methods=['post'], url_path='bulk-import')
+    def bulk_import(self, request):
+        """Bulk import FortiGate policies from JSON"""
+        policies_data = request.data
+        
+        if not isinstance(policies_data, list):
+            return Response({'error': 'Expected list of policies'}, status=400)
+        
+        created_count = 0
+        updated_count = 0
+        errors = []
+        
+        for policy_data in policies_data:
+            try:
+                policy_id = policy_data.get('policy_id')
+                fortigate_host = policy_data.get('fortigate_host')
+                vdom = policy_data.get('vdom', 'root')
+                
+                # Try to find existing policy
+                existing = FortiGatePolicy.objects.filter(
+                    policy_id=policy_id,
+                    fortigate_host=fortigate_host,
+                    vdom=vdom
+                ).first()
+                
+                if existing:
+                    # Update existing policy
+                    serializer = self.get_serializer(existing, data=policy_data, partial=True)
+                    if serializer.is_valid():
+                        serializer.save()
+                        updated_count += 1
+                    else:
+                        errors.append(f"Policy {policy_id}: {serializer.errors}")
+                else:
+                    # Create new policy
+                    serializer = self.get_serializer(data=policy_data)
+                    if serializer.is_valid():
+                        serializer.save()
+                        created_count += 1
+                    else:
+                        errors.append(f"Policy {policy_id}: {serializer.errors}")
+                        
+            except Exception as e:
+                errors.append(f"Policy {policy_data.get('policy_id', 'unknown')}: {str(e)}")
+        
+        return Response({
+            'created': created_count,
+            'updated': updated_count,
+            'errors': errors
+        })
+
+    @action(detail=False, methods=['get'], url_path='by-action')
+    def by_action(self, request):
+        """Group policies by action (accept/deny)"""
+        queryset = self.get_queryset()
+        
+        return Response({
+            'accept': queryset.filter(action='accept').count(),
+            'deny': queryset.filter(action='deny').count(),
+            'ipsec': queryset.filter(action='ipsec').count(),
+            'total': queryset.count()
+        })
+
+    @action(detail=True, methods=['post'], url_path='regenerate-description')
+    def regenerate_description(self, request, pk=None):
+        """Regenerate AI description for a policy"""
+        policy = self.get_object()
+        
+        # Generate new description using the model method
+        new_description = policy.generate_ai_description()
+        policy.ai_description = new_description
+        policy.save(update_fields=['ai_description'])
+        
+        return Response({
+            'policy_id': policy.policy_id,
+            'ai_description': new_description
+        })
+
+    @action(detail=False, methods=['get'], url_path='statistics')
+    def statistics(self, request):
+        """FortiGate policy statistics"""
+        queryset = self.get_queryset()
+        
+        return Response({
+            'total_policies': queryset.count(),
+            'by_action': {
+                'accept': queryset.filter(action='accept').count(),
+                'deny': queryset.filter(action='deny').count(),
+                'ipsec': queryset.filter(action='ipsec').count(),
+            },
+            'by_status': {
+                'enabled': queryset.filter(status='enable').count(),
+                'disabled': queryset.filter(status='disable').count(),
+            },
+            'nat_policies': queryset.filter(nat_enabled=True).count(),
+            'utm_policies': queryset.filter(utm_status='enable').count(),
+            'by_fortigate': {
+                host: queryset.filter(fortigate_host=host).count()
+                for host in queryset.values_list('fortigate_host', flat=True).distinct()
+            }
         })
