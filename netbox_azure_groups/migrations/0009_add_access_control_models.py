@@ -1,0 +1,142 @@
+# Generated manually for netbox_azure_groups
+from django.db import migrations, models
+import django.db.models.deletion
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('tenancy', '0001_initial'),
+        ('dcim', '0001_initial'), 
+        ('netbox_azure_groups', '0008_add_access_control_models'),
+    ]
+
+    operations = [
+        # Create ProtectedResource table
+        migrations.CreateModel(
+            name='ProtectedResource',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('created', models.DateTimeField(auto_now_add=True, null=True)),
+                ('last_updated', models.DateTimeField(auto_now=True, null=True)),
+                ('custom_field_data', models.JSONField(blank=True, default=dict, encoder=None)),
+                ('name', models.CharField(help_text='Resource name (e.g., "HR Database", "Server Room A", "Finance Portal")', max_length=200, unique=True)),
+                ('resource_type', models.CharField(choices=[('web_application', 'Web Application'), ('database', 'Database'), ('api_service', 'API Service'), ('file_share', 'File Share'), ('physical_location', 'Physical Location'), ('network_device', 'Network Device'), ('cloud_resource', 'Cloud Resource'), ('other', 'Other')], help_text='Type of protected resource', max_length=50)),
+                ('description', models.TextField(blank=True, help_text='Resource description and purpose')),
+                ('base_url', models.URLField(blank=True, help_text='Resource URL if applicable')),
+                ('ip_addresses', models.JSONField(blank=True, default=list, help_text='IP addresses associated with this resource')),
+                ('physical_location', models.CharField(blank=True, help_text='Physical location (e.g., "Building A, Room 101")', max_length=200)),
+                ('business_unit', models.CharField(blank=True, help_text='Business unit that owns this resource', max_length=100)),
+                ('criticality', models.CharField(choices=[('low', 'Low'), ('medium', 'Medium'), ('high', 'High'), ('critical', 'Critical')], default='medium', help_text='Business criticality of this resource', max_length=20)),
+                ('is_active', models.BooleanField(default=True, help_text='Whether resource is currently active')),
+                ('owner_contact', models.ForeignKey(blank=True, help_text='Contact responsible for this resource', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='owned_resources', to='tenancy.contact')),
+            ],
+            options={
+                'verbose_name': 'Protected Resource',
+                'verbose_name_plural': 'Protected Resources',
+                'ordering': ['name'],
+            },
+        ),
+        
+        # Create AccessControlMethod table
+        migrations.CreateModel(
+            name='AccessControlMethod',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('created', models.DateTimeField(auto_now_add=True, null=True)),
+                ('last_updated', models.DateTimeField(auto_now=True, null=True)),
+                ('custom_field_data', models.JSONField(blank=True, default=dict, encoder=None)),
+                ('control_type', models.CharField(choices=[('fortigate_policy', 'FortiGate Firewall Policy'), ('badge_reader', 'Physical Badge Reader'), ('vpn_config', 'VPN Configuration'), ('application_rbac', 'Application Role'), ('network_acl', 'Network ACL'), ('cloud_iam', 'Cloud IAM Policy'), ('manual_process', 'Manual Process'), ('other', 'Other')], help_text='Type of access control mechanism', max_length=50)),
+                ('name', models.CharField(help_text='Control mechanism name (e.g., "Policy-42", "Door-Controller-A")', max_length=200)),
+                ('description', models.TextField(blank=True, help_text='How this control method works')),
+                ('access_level', models.CharField(choices=[('read', 'Read Only'), ('write', 'Read/Write'), ('admin', 'Administrative'), ('full', 'Full Access'), ('physical', 'Physical Access')], default='read', help_text='Level of access granted', max_length=20)),
+                ('configuration', models.JSONField(blank=True, default=dict, help_text='Type-specific configuration details')),
+                ('is_active', models.BooleanField(default=True, help_text='Whether this control method is currently active')),
+                ('last_verified', models.DateTimeField(blank=True, help_text='When this configuration was last verified', null=True)),
+                ('azure_group', models.ForeignKey(help_text='Azure group that provides access through this method', on_delete=django.db.models.deletion.CASCADE, related_name='enables_access_via', to='netbox_azure_groups.azuregroup')),
+                ('resource', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='access_methods', to='netbox_azure_groups.protectedresource')),
+            ],
+            options={
+                'verbose_name': 'Access Control Method',
+                'verbose_name_plural': 'Access Control Methods',
+                'ordering': ['resource', 'name'],
+            },
+        ),
+        
+        # Create AccessGrant table
+        migrations.CreateModel(
+            name='AccessGrant',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('created', models.DateTimeField(auto_now_add=True, null=True)),
+                ('last_updated', models.DateTimeField(auto_now=True, null=True)),
+                ('custom_field_data', models.JSONField(blank=True, default=dict, encoder=None)),
+                ('access_level', models.CharField(choices=[('read', 'Read Only'), ('write', 'Read/Write'), ('admin', 'Administrative'), ('full', 'Full Access'), ('physical', 'Physical Access')], help_text='Level of access granted (inherited from control method)', max_length=20)),
+                ('granted_via', models.CharField(choices=[('direct_membership', 'Direct Group Membership'), ('nested_membership', 'Nested Group Membership'), ('inherited', 'Inherited Permission')], default='direct_membership', help_text='How the access was granted', max_length=30)),
+                ('first_granted', models.DateTimeField(auto_now_add=True, help_text='When access was first granted')),
+                ('last_verified', models.DateTimeField(auto_now=True, help_text='When access was last verified')),
+                ('is_active', models.BooleanField(default=True, help_text='Whether access is currently active')),
+                ('azure_group', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='access_grants', to='netbox_azure_groups.azuregroup')),
+                ('contact', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='access_grants', to='tenancy.contact')),
+                ('control_method', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='access_grants', to='netbox_azure_groups.accesscontrolmethod')),
+                ('resource', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='access_grants', to='netbox_azure_groups.protectedresource')),
+            ],
+            options={
+                'verbose_name': 'Access Grant',
+                'verbose_name_plural': 'Access Grants',
+                'ordering': ['-first_granted'],
+            },
+        ),
+        
+        # Add unique constraints
+        migrations.AddConstraint(
+            model_name='accesscontrolmethod',
+            constraint=models.UniqueConstraint(fields=('resource', 'name'), name='unique_resource_method_name'),
+        ),
+        migrations.AddConstraint(
+            model_name='accessgrant',
+            constraint=models.UniqueConstraint(fields=('resource', 'contact', 'azure_group', 'control_method'), name='unique_access_grant'),
+        ),
+        
+        # Add indexes
+        migrations.AddIndex(
+            model_name='protectedresource',
+            index=models.Index(fields=['resource_type', 'is_active'], name='netbox_azure_groups_protectedresource_resource_type_is_active_idx'),
+        ),
+        migrations.AddIndex(
+            model_name='protectedresource', 
+            index=models.Index(fields=['criticality'], name='netbox_azure_groups_protectedresource_criticality_idx'),
+        ),
+        migrations.AddIndex(
+            model_name='protectedresource',
+            index=models.Index(fields=['owner_contact'], name='netbox_azure_groups_protectedresource_owner_contact_idx'),
+        ),
+        migrations.AddIndex(
+            model_name='accesscontrolmethod',
+            index=models.Index(fields=['resource', 'is_active'], name='netbox_azure_groups_accesscontrolmethod_resource_is_active_idx'),
+        ),
+        migrations.AddIndex(
+            model_name='accesscontrolmethod',
+            index=models.Index(fields=['control_type'], name='netbox_azure_groups_accesscontrolmethod_control_type_idx'),
+        ),
+        migrations.AddIndex(
+            model_name='accesscontrolmethod',
+            index=models.Index(fields=['azure_group'], name='netbox_azure_groups_accesscontrolmethod_azure_group_idx'),
+        ),
+        migrations.AddIndex(
+            model_name='accessgrant',
+            index=models.Index(fields=['resource', 'is_active'], name='netbox_azure_groups_accessgrant_resource_is_active_idx'),
+        ),
+        migrations.AddIndex(
+            model_name='accessgrant',
+            index=models.Index(fields=['contact', 'is_active'], name='netbox_azure_groups_accessgrant_contact_is_active_idx'),
+        ),
+        migrations.AddIndex(
+            model_name='accessgrant',
+            index=models.Index(fields=['azure_group'], name='netbox_azure_groups_accessgrant_azure_group_idx'),
+        ),
+        migrations.AddIndex(
+            model_name='accessgrant',
+            index=models.Index(fields=['first_granted'], name='netbox_azure_groups_accessgrant_first_granted_idx'),
+        ),
+    ]
