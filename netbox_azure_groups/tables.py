@@ -1,6 +1,6 @@
 import django_tables2 as tables
 from netbox.tables import BaseTable, ChoiceFieldColumn
-from .models import AzureGroup
+from .models import AzureGroup, ProtectedResource
 
 
 class AzureGroupTable(BaseTable):
@@ -28,3 +28,29 @@ class AzureGroupTable(BaseTable):
         # Remove any columns that might try to generate edit URLs
         if hasattr(self.base_columns, 'actions'):
             del self.base_columns['actions']
+
+
+class ProtectedResourceTable(BaseTable):
+    id = tables.Column(verbose_name='ID')
+    name = tables.Column(
+        verbose_name='Name',
+        linkify=lambda record: record.get_absolute_url()
+    )
+    resource_type = ChoiceFieldColumn()
+    environment = tables.Column(verbose_name='Environment')
+    criticality = ChoiceFieldColumn()
+    owner_contact = tables.Column(verbose_name='Owner')
+    is_active = tables.BooleanColumn(verbose_name='Active')
+    access_method_count = tables.Column(verbose_name='Access Methods', empty_values=())
+    grant_count = tables.Column(verbose_name='Access Grants', empty_values=())
+
+    class Meta(BaseTable.Meta):
+        model = ProtectedResource
+        fields = (
+            'id', 'name', 'resource_type', 'environment', 'criticality', 
+            'owner_contact', 'is_active', 'access_method_count', 'grant_count'
+        )
+        default_columns = (
+            'id', 'name', 'resource_type', 'environment', 'criticality', 
+            'is_active', 'access_method_count', 'grant_count'
+        )

@@ -41,3 +41,51 @@ class AzureGroupDeleteView(generic.ObjectDeleteView):
 
 class AzureGroupChangeLogView(generic.ObjectChangeLogView):
     queryset = models.AzureGroup.objects.all()
+
+
+# ProtectedResource Views
+
+class ProtectedResourceView(generic.ObjectView):
+    queryset = models.ProtectedResource.objects.prefetch_related('tags')
+    
+    def get_extra_context(self, request, instance):
+        # Get access control methods and grants for this resource
+        access_methods = instance.access_control_methods.all().select_related('azure_group')
+        access_grants = instance.access_grants.all().select_related('contact', 'azure_group')
+        
+        # Get related FortiGate policies through access control methods
+        fortigate_policies = models.FortiGatePolicy.objects.filter(
+            access_control_method__resource=instance
+        )
+        
+        return {
+            'access_methods_count': access_methods.count(),
+            'access_grants_count': access_grants.count(),
+            'fortigate_policies_count': fortigate_policies.count(),
+            'access_methods': access_methods,
+            'access_grants': access_grants[:10],  # Show first 10
+            'fortigate_policies': fortigate_policies,
+        }
+
+
+class ProtectedResourceListView(generic.ObjectListView):
+    queryset = models.ProtectedResource.objects.annotate(
+        access_method_count=Count('access_control_methods'),
+        grant_count=Count('access_grants')
+    )
+    table = tables.ProtectedResourceTable
+    filterset = filtersets.ProtectedResourceFilterSet
+    filterset_form = forms.ProtectedResourceFilterForm
+
+
+class ProtectedResourceEditView(generic.ObjectEditView):
+    queryset = models.ProtectedResource.objects.all()
+    form = forms.ProtectedResourceForm
+
+
+class ProtectedResourceDeleteView(generic.ObjectDeleteView):
+    queryset = models.ProtectedResource.objects.all()
+
+
+class ProtectedResourceChangeLogView(generic.ObjectChangeLogView):
+    queryset = models.ProtectedResource.objects.all()

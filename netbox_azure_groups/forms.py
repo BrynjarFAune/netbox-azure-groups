@@ -1,7 +1,11 @@
 from django import forms
 from netbox.forms import NetBoxModelForm, NetBoxModelFilterSetForm
 from .models import AzureGroup, GroupMembership, GroupOwnership
-from .models.azure_groups import GroupTypeChoices, GroupSourceChoices, MembershipTypeChoices
+from .models.azure_groups import (
+    GroupTypeChoices, GroupSourceChoices, MembershipTypeChoices,
+    ProtectedResource, AccessControlMethod, AccessGrant, FortiGatePolicy,
+    ResourceTypeChoices, CriticalityChoices, ControlTypeChoices, AccessLevelChoices
+)
 
 
 class AzureGroupForm(NetBoxModelForm):
@@ -130,3 +134,53 @@ class GroupOwnershipFilterForm(NetBoxModelFilterSetForm):
         required=False,
         label='Group'
     )
+
+
+# Access Control Forms
+
+class ProtectedResourceForm(NetBoxModelForm):
+    """Form for creating and editing Protected Resources."""
+    
+    class Meta:
+        model = ProtectedResource
+        fields = [
+            'name', 'description', 'resource_type', 'environment',
+            'server_name', 'resource_url', 'ip_addresses', 'physical_location',
+            'owner_contact', 'business_unit', 'criticality', 'is_active', 'tags'
+        ]
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 3}),
+            'ip_addresses': forms.Textarea(attrs={
+                'rows': 2, 
+                'placeholder': '["192.168.1.10", "192.168.1.11"]'
+            }),
+            'resource_url': forms.URLInput(attrs={
+                'placeholder': 'https://example.com/resource'
+            }),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Add helpful placeholders and descriptions
+        self.fields['name'].help_text = 'Descriptive name for this protected resource'
+        self.fields['server_name'].help_text = 'Server hostname if applicable'
+        self.fields['ip_addresses'].help_text = 'JSON list of IP addresses associated with this resource'
+        self.fields['physical_location'].help_text = 'Physical location (e.g., "Building A, Room 101")'
+
+
+class ProtectedResourceFilterForm(NetBoxModelFilterSetForm):
+    model = ProtectedResource
+    
+    name = forms.CharField(required=False)
+    resource_type = forms.MultipleChoiceField(
+        choices=ResourceTypeChoices.CHOICES,
+        required=False
+    )
+    environment = forms.CharField(required=False)
+    criticality = forms.MultipleChoiceField(
+        choices=CriticalityChoices.CHOICES,
+        required=False
+    )
+    business_unit = forms.CharField(required=False)
+    is_active = forms.BooleanField(required=False)

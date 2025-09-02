@@ -1,6 +1,6 @@
 import django_filters
 from django_filters import filterset
-from .models import AzureGroup, GroupMembership, GroupOwnership
+from .models import AzureGroup, GroupMembership, GroupOwnership, ProtectedResource
 
 
 # Minimal filtersets for migration purposes only
@@ -28,3 +28,16 @@ class GroupOwnershipFilterSet(filterset.FilterSet):
 ContactGroupMembershipFilterSet = GroupMembershipFilterSet
 DeviceGroupMembershipFilterSet = GroupMembershipFilterSet  
 ContactGroupOwnershipFilterSet = GroupOwnershipFilterSet
+
+
+class ProtectedResourceFilterSet(filterset.FilterSet):
+    name = django_filters.CharFilter(lookup_expr='icontains')
+    environment = django_filters.CharFilter(lookup_expr='icontains')
+    business_unit = django_filters.CharFilter(lookup_expr='icontains')
+    
+    class Meta:
+        model = ProtectedResource
+        fields = [
+            'name', 'resource_type', 'environment', 'criticality', 
+            'business_unit', 'is_active', 'owner_contact'
+        ]

@@ -1,0 +1,257 @@
+{% extends 'generic/object.html' %}
+{% load render_table from django_tables2 %}
+{% load buttons %}
+{% load perms %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col col-md-6">
+        <div class="card">
+            <h5 class="card-header">Protected Resource Details</h5>
+            <div class="card-body">
+                <table class="table table-hover attr-table">
+                    <tr>
+                        <th scope="row">Name</th>
+                        <td>{{ object.name }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Type</th>
+                        <td>
+                            <span class="badge bg-primary">{{ object.get_resource_type_display }}</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Environment</th>
+                        <td>{{ object.environment|default:"<span class='text-muted'>Not specified</span>" }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Criticality</th>
+                        <td>
+                            {% if object.criticality == 'high' %}
+                                <span class="badge bg-danger">{{ object.get_criticality_display }}</span>
+                            {% elif object.criticality == 'medium' %}
+                                <span class="badge bg-warning">{{ object.get_criticality_display }}</span>
+                            {% else %}
+                                <span class="badge bg-success">{{ object.get_criticality_display }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Status</th>
+                        <td>
+                            {% if object.is_active %}
+                                <i class="mdi mdi-check-circle text-success"></i> Active
+                            {% else %}
+                                <i class="mdi mdi-close-circle text-danger"></i> Inactive
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Owner</th>
+                        <td>
+                            {% if object.owner_contact %}
+                                <a href="{{ object.owner_contact.get_absolute_url }}">{{ object.owner_contact }}</a>
+                            {% else %}
+                                <span class="text-muted">Not assigned</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Business Unit</th>
+                        <td>{{ object.business_unit|default:"<span class='text-muted'>Not specified</span>" }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col col-md-6">
+        <div class="card">
+            <h5 class="card-header">Technical Details</h5>
+            <div class="card-body">
+                <table class="table table-hover attr-table">
+                    <tr>
+                        <th scope="row">Server Name</th>
+                        <td>{{ object.server_name|default:"<span class='text-muted'>Not specified</span>" }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Resource URL</th>
+                        <td>
+                            {% if object.resource_url %}
+                                <a href="{{ object.resource_url }}" target="_blank">{{ object.resource_url }}</a>
+                            {% else %}
+                                <span class="text-muted">Not specified</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">IP Addresses</th>
+                        <td>
+                            {% if object.ip_addresses %}
+                                {% for ip in object.ip_addresses %}
+                                    <code>{{ ip }}</code>{% if not forloop.last %}, {% endif %}
+                                {% endfor %}
+                            {% else %}
+                                <span class="text-muted">None specified</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Physical Location</th>
+                        <td>{{ object.physical_location|default:"<span class='text-muted'>Not specified</span>" }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if object.description %}
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="card">
+            <h5 class="card-header">Description</h5>
+            <div class="card-body">
+                {{ object.description|linebreaksbr }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <h5 class="card-header">
+                <i class="mdi mdi-shield-lock text-warning"></i> Access Control Methods
+                <span class="badge bg-primary ms-2">{{ access_methods_count }}</span>
+            </h5>
+            <div class="card-body">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Method</th>
+                            <th>Type</th>
+                            <th>Azure Group</th>
+                            <th>Access Level</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for method in access_methods %}
+                        <tr>
+                            <td>{{ method.name }}</td>
+                            <td>
+                                <span class="badge bg-secondary">{{ method.get_control_type_display }}</span>
+                            </td>
+                            <td>
+                                {% if method.azure_group %}
+                                    <a href="{{ method.azure_group.get_absolute_url }}">{{ method.azure_group.name }}</a>
+                                {% else %}
+                                    <span class="text-muted">Not specified</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge bg-info">{{ method.get_access_level_display }}</span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-muted">No access control methods configured</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <h5 class="card-header">
+                <i class="mdi mdi-account-key text-success"></i> Access Grants
+                <span class="badge bg-primary ms-2">{{ access_grants_count }}</span>
+            </h5>
+            <div class="card-body">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Contact</th>
+                            <th>Via Group</th>
+                            <th>Access Level</th>
+                            <th>Granted</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for grant in access_grants %}
+                        <tr>
+                            <td>
+                                <a href="{{ grant.contact.get_absolute_url }}">{{ grant.contact }}</a>
+                            </td>
+                            <td>
+                                <a href="{{ grant.azure_group.get_absolute_url }}">{{ grant.azure_group.name }}</a>
+                            </td>
+                            <td>
+                                <span class="badge bg-info">{{ grant.get_access_level_display }}</span>
+                            </td>
+                            <td>{{ grant.first_granted|date:"M d, Y" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-muted">No access grants found</td>
+                        </tr>
+                        {% endfor %}
+                        {% if access_grants_count > 10 %}
+                        <tr>
+                            <td colspan="4" class="text-center">
+                                <small class="text-muted">Showing first 10 of {{ access_grants_count }} grants</small>
+                            </td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if fortigate_policies %}
+<div class="row mt-3">
+    <div class="col-12">
+        <div class="card">
+            <h5 class="card-header">
+                <i class="mdi mdi-firewall text-danger"></i> Related FortiGate Policies
+                <span class="badge bg-primary ms-2">{{ fortigate_policies_count }}</span>
+            </h5>
+            <div class="card-body">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Policy ID</th>
+                            <th>Name</th>
+                            <th>Action</th>
+                            <th>Source</th>
+                            <th>Destination</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for policy in fortigate_policies %}
+                        <tr>
+                            <td>{{ policy.policy_id }}</td>
+                            <td>{{ policy.name|default:"-" }}</td>
+                            <td>
+                                <span class="badge bg-success">{{ policy.get_action_display }}</span>
+                            </td>
+                            <td>{{ policy.source_interfaces_display }}</td>
+                            <td>{{ policy.destination_interfaces_display }}</td>
+                            <td class="text-truncate" style="max-width: 300px;" title="{{ policy.ai_description }}">
+                                {{ policy.ai_description|truncatewords:10 }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
