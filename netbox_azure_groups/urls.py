@@ -31,6 +31,14 @@ urlpatterns = [
     path('fortigate-policies/<int:pk>/', views.FortiGatePolicyView.as_view(), name='fortigatepolicy'),
     path('fortigate-policies/<int:pk>/changelog/', views.FortiGatePolicyChangeLogView.as_view(), name='fortigatepolicy_changelog'),
     
+    # Access Grants - Full CRUD
+    path('access-grants/', views.AccessGrantListView.as_view(), name='accessgrant_list'),
+    path('access-grants/<int:pk>/', views.AccessGrantView.as_view(), name='accessgrant'),
+    path('access-grants/add/', views.AccessGrantEditView.as_view(), name='accessgrant_add'),
+    path('access-grants/<int:pk>/edit/', views.AccessGrantEditView.as_view(), name='accessgrant_edit'),
+    path('access-grants/<int:pk>/delete/', views.AccessGrantDeleteView.as_view(), name='accessgrant_delete'),
+    path('access-grants/<int:pk>/changelog/', views.AccessGrantChangeLogView.as_view(), name='accessgrant_changelog'),
+    
     # API URLs
     path('api/', include('netbox_azure_groups.api.urls')),
 ]

@@ -174,3 +174,72 @@ class FortiGatePolicyListView(generic.ObjectListView):
 
 class FortiGatePolicyChangeLogView(generic.ObjectChangeLogView):
     queryset = models.FortiGatePolicy.objects.all()
+
+
+# Access Grant Views
+
+class AccessGrantView(generic.ObjectView):
+    queryset = models.AccessGrant.objects.select_related(
+        'resource', 'contact', 'azure_group', 'control_method'
+    ).prefetch_related('tags')
+    
+    def get_extra_context(self, request, instance):
+        # Get FortiGate policy details if applicable
+        fortigate_policy = None
+        if instance.control_method.control_type == 'fortigate_policy':
+            policy_id = instance.control_method.configuration.get('policy_id')
+            if policy_id:
+                try:
+                    fortigate_policy = models.FortiGatePolicy.objects.get(policy_id=policy_id)
+                except models.FortiGatePolicy.DoesNotExist:
+                    pass
+        
+        # Get other grants for the same resource
+        related_grants = models.AccessGrant.objects.filter(
+            resource=instance.resource
+        ).exclude(pk=instance.pk).select_related('contact', 'azure_group')[:10]
+        
+        return {
+            'fortigate_policy': fortigate_policy,
+            'related_grants': related_grants,
+            'related_grants_count': models.AccessGrant.objects.filter(
+                resource=instance.resource
+            ).exclude(pk=instance.pk).count(),
+        }
+
+
+class AccessGrantListView(generic.ObjectListView):
+    queryset = models.AccessGrant.objects.select_related(
+        'resource', 'contact', 'azure_group', 'control_method'
+    )
+    table = tables.AccessGrantTable
+    filterset = filtersets.AccessGrantFilterSet
+    filterset_form = forms.AccessGrantFilterForm
+    template_name = 'netbox_azure_groups/accessgrant_list.html'
+    
+    def get_extra_context(self, request):
+        # Get some statistics for the list view
+        queryset = self.filterset.qs if self.filterset else self.queryset
+        
+        stats = {
+            'total_grants': queryset.count(),
+            'active_grants': queryset.filter(is_active=True).count(),
+            'inactive_grants': queryset.filter(is_active=False).count(),
+            'direct_grants': queryset.filter(granted_via='direct_membership').count(),
+            'nested_grants': queryset.filter(granted_via='nested_group').count(),
+        }
+        
+        return {'stats': stats}
+
+
+class AccessGrantEditView(generic.ObjectEditView):
+    queryset = models.AccessGrant.objects.all()
+    form = forms.AccessGrantForm
+
+
+class AccessGrantDeleteView(generic.ObjectDeleteView):
+    queryset = models.AccessGrant.objects.all()
+
+
+class AccessGrantChangeLogView(generic.ObjectChangeLogView):
+    queryset = models.AccessGrant.objects.all()

@@ -1,0 +1,175 @@
+{% extends 'generic/object_list.html' %}
+{% load buttons %}
+{% load helpers %}
+
+{% block title %}Access Grants{% endblock %}
+
+{% block header %}
+<div class="row">
+    <div class="col-sm-8 col-md-9">
+        <h1>{% block pretitle %}{% endblock %}Access Grants</h1>
+    </div>
+    <div class="col-sm-4 col-md-3 text-end">
+        <div class="btn-group" role="group">
+            {% if request.user.is_authenticated %}
+                {% bookmark_button queryset %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock header %}
+
+{% block content_title %}
+<div class="d-flex justify-content-between align-items-center">
+    <div>
+        <h3><i class="mdi mdi-key-variant text-success"></i> Access Grant Management</h3>
+        <p class="text-muted">Manage user access permissions to protected resources through Azure AD groups</p>
+    </div>
+    <div>
+        <span class="badge bg-info">{{ filter.qs.count }} of {{ object_count }} grants</span>
+    </div>
+</div>
+{% endblock content_title %}
+
+{% block extra_controls %}
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="mdi mdi-magnify"></i> Search & Filter Access Grants</h5>
+            </div>
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-3">
+                        <label for="resource" class="form-label">Resource</label>
+                        <select class="form-select" id="resource" name="resource">
+                            <option value="">All Resources</option>
+                            {% for resource in form.resource.field.queryset %}
+                                <option value="{{ resource.pk }}" {% if request.GET.resource == resource.pk|stringformat:"s" %}selected{% endif %}>
+                                    {{ resource.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="contact" class="form-label">Contact Name</label>
+                        <input type="text" class="form-control" id="contact" name="contact" 
+                               value="{{ request.GET.contact }}" placeholder="Search contacts...">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="azure_group" class="form-label">Azure Group</label>
+                        <select class="form-select" id="azure_group" name="azure_group">
+                            <option value="">All Groups</option>
+                            {% for group in form.azure_group.field.queryset %}
+                                <option value="{{ group.pk }}" {% if request.GET.azure_group == group.pk|stringformat:"s" %}selected{% endif %}>
+                                    {{ group.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="access_level" class="form-label">Access Level</label>
+                        <select class="form-select" id="access_level" name="access_level" multiple>
+                            {% for value, label in form.access_level.field.choices %}
+                                <option value="{{ value }}" {% if value in request.GET.access_level %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="granted_via" class="form-label">Granted Via</label>
+                        <select class="form-select" id="granted_via" name="granted_via" multiple>
+                            {% for value, label in form.granted_via.field.choices %}
+                                <option value="{{ value }}" {% if value in request.GET.granted_via %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="is_active" class="form-label">Status</label>
+                        <select class="form-select" id="is_active" name="is_active">
+                            <option value="">All Grants</option>
+                            <option value="true" {% if request.GET.is_active == 'true' %}selected{% endif %}>Active Only</option>
+                            <option value="false" {% if request.GET.is_active == 'false' %}selected{% endif %}>Inactive Only</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex gap-2 align-items-end h-100">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="mdi mdi-magnify"></i> Search
+                            </button>
+                            <a href="{% url 'plugins:netbox_azure_groups:accessgrant_list' %}" class="btn btn-outline-secondary">
+                                <i class="mdi mdi-refresh"></i> Reset
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Search Results Summary -->
+{% if request.GET %}
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="alert alert-info">
+            <i class="mdi mdi-information"></i>
+            <strong>Search Results:</strong> Found {{ filter.qs.count }} access grants matching your criteria
+            {% if request.GET.resource %} | Resource: {{ request.GET.resource }}{% endif %}
+            {% if request.GET.contact %} | Contact: "{{ request.GET.contact }}"{% endif %}
+            {% if request.GET.azure_group %} | Azure Group: {{ request.GET.azure_group }}{% endif %}
+            {% if request.GET.access_level %} | Access Level: {{ request.GET.access_level }}{% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock extra_controls %}
+
+{% block table_controls %}
+<!-- Access Grant Statistics -->
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="row text-center">
+            <div class="col-md-2">
+                <div class="card">
+                    <div class="card-body py-2">
+                        <h6 class="mb-1">Total Grants</h6>
+                        <h4 class="text-primary mb-0">{{ stats.total_grants|default:0 }}</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="card">
+                    <div class="card-body py-2">
+                        <h6 class="mb-1">Active</h6>
+                        <h4 class="text-success mb-0">{{ stats.active_grants|default:0 }}</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="card">
+                    <div class="card-body py-2">
+                        <h6 class="mb-1">Inactive</h6>
+                        <h4 class="text-danger mb-0">{{ stats.inactive_grants|default:0 }}</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body py-2">
+                        <h6 class="mb-1">Direct Membership</h6>
+                        <h4 class="text-info mb-0">{{ stats.direct_grants|default:0 }}</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body py-2">
+                        <h6 class="mb-1">Nested Groups</h6>
+                        <h4 class="text-warning mb-0">{{ stats.nested_grants|default:0 }}</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock table_controls %}

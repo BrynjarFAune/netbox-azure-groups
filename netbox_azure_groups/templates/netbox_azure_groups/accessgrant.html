@@ -1,0 +1,210 @@
+{% extends 'generic/object.html' %}
+{% load render_table from django_tables2 %}
+{% load buttons %}
+{% load helpers %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col col-md-6">
+        <div class="card">
+            <h5 class="card-header">Access Grant Details</h5>
+            <div class="card-body">
+                <table class="table table-hover attr-table">
+                    <tr>
+                        <th scope="row">Resource</th>
+                        <td>
+                            <a href="{{ object.resource.get_absolute_url }}">{{ object.resource.name }}</a>
+                            <br>
+                            <small class="text-muted">{{ object.resource.get_resource_type_display }}</small>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Contact</th>
+                        <td>
+                            <a href="{% url 'tenancy:contact' object.contact.pk %}">{{ object.contact.name }}</a>
+                            {% if object.contact.email %}
+                                <br>
+                                <small class="text-muted">{{ object.contact.email }}</small>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Azure Group</th>
+                        <td>
+                            <a href="{{ object.azure_group.get_absolute_url }}">{{ object.azure_group.name }}</a>
+                            <br>
+                            <small class="text-muted">{{ object.azure_group.members_count|default:0 }} members</small>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Control Method</th>
+                        <td>
+                            <a href="{{ object.control_method.get_absolute_url }}">{{ object.control_method.name }}</a>
+                            <br>
+                            <small class="text-muted">{{ object.control_method.get_control_type_display }}</small>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Access Level</th>
+                        <td>
+                            <span class="badge bg-info">{{ object.get_access_level_display }}</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Granted Via</th>
+                        <td>
+                            <span class="badge bg-secondary">{{ object.get_granted_via_display }}</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Status</th>
+                        <td>
+                            {% if object.is_active %}
+                                <i class="mdi mdi-check-circle text-success"></i> Active
+                            {% else %}
+                                <i class="mdi mdi-close-circle text-danger"></i> Inactive
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col col-md-6">
+        <div class="card">
+            <h5 class="card-header">Audit Information</h5>
+            <div class="card-body">
+                <table class="table table-hover attr-table">
+                    <tr>
+                        <th scope="row">First Granted</th>
+                        <td>{{ object.first_granted|date:"M d, Y H:i" }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Last Verified</th>
+                        <td>{{ object.last_verified|date:"M d, Y H:i" }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Grant Duration</th>
+                        <td>
+                            {% if object.first_granted %}
+                                {{ object.first_granted|timesince }} ago
+                            {% else %}
+                                <span class="text-muted">Unknown</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if fortigate_policy %}
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="card">
+            <h5 class="card-header">
+                <i class="mdi mdi-firewall text-danger"></i> Associated FortiGate Policy
+            </h5>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-hover attr-table">
+                            <tr>
+                                <th scope="row">Policy ID</th>
+                                <td><code>{{ fortigate_policy.policy_id }}</code></td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Policy Name</th>
+                                <td>{{ fortigate_policy.name|default:"<span class='text-muted'>No name</span>" }}</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Action</th>
+                                <td>
+                                    {% if fortigate_policy.action == 'accept' %}
+                                        <span class="badge bg-success">{{ fortigate_policy.get_action_display }}</span>
+                                    {% elif fortigate_policy.action == 'deny' %}
+                                        <span class="badge bg-danger">{{ fortigate_policy.get_action_display }}</span>
+                                    {% else %}
+                                        <span class="badge bg-info">{{ fortigate_policy.get_action_display }}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">FortiGate Host</th>
+                                <td><code>{{ fortigate_policy.fortigate_host }}</code></td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        {% if fortigate_policy.ai_description %}
+                        <div class="alert alert-info">
+                            <i class="mdi mdi-brain"></i> <strong>AI Description:</strong><br>
+                            {{ fortigate_policy.ai_description }}
+                        </div>
+                        {% endif %}
+                        <a href="{{ fortigate_policy.get_absolute_url }}" class="btn btn-outline-primary">
+                            <i class="mdi mdi-eye"></i> View Full Policy Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if related_grants %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <h5 class="card-header">
+                <i class="mdi mdi-account-group"></i> Other Access Grants for {{ object.resource.name }}
+                <span class="badge bg-primary ms-2">{{ related_grants_count }}</span>
+            </h5>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover table-sm">
+                        <thead>
+                            <tr>
+                                <th>Contact</th>
+                                <th>Azure Group</th>
+                                <th>Access Level</th>
+                                <th>Status</th>
+                                <th>Granted</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for grant in related_grants %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'tenancy:contact' grant.contact.pk %}">{{ grant.contact.name }}</a>
+                                </td>
+                                <td>
+                                    <a href="{{ grant.azure_group.get_absolute_url }}">{{ grant.azure_group.name }}</a>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">{{ grant.get_access_level_display }}</span>
+                                </td>
+                                <td>
+                                    {% if grant.is_active %}
+                                        <i class="mdi mdi-check-circle text-success"></i>
+                                    {% else %}
+                                        <i class="mdi mdi-close-circle text-danger"></i>
+                                    {% endif %}
+                                </td>
+                                <td>{{ grant.first_granted|date:"M d" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% if related_grants_count > 10 %}
+                <p class="text-muted mt-2">Showing first 10 of {{ related_grants_count }} total grants.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

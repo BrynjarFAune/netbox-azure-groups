@@ -1,6 +1,6 @@
 import django_filters
 from django_filters import filterset
-from .models import AzureGroup, GroupMembership, GroupOwnership, ProtectedResource, AccessControlMethod, FortiGatePolicy
+from .models import AzureGroup, GroupMembership, GroupOwnership, ProtectedResource, AccessControlMethod, FortiGatePolicy, AccessGrant
 
 
 # Minimal filtersets for migration purposes only
@@ -69,4 +69,29 @@ class FortiGatePolicyFilterSet(filterset.FilterSet):
         fields = [
             'policy_id', 'name', 'action', 'status', 'nat_enabled', 
             'utm_status', 'fortigate_host', 'vdom', 'ai_description'
+        ]
+
+
+class AccessGrantFilterSet(filterset.FilterSet):
+    contact_name = django_filters.CharFilter(
+        field_name='contact__name', 
+        lookup_expr='icontains',
+        label='Contact Name'
+    )
+    resource_name = django_filters.CharFilter(
+        field_name='resource__name',
+        lookup_expr='icontains',
+        label='Resource Name'
+    )
+    azure_group_name = django_filters.CharFilter(
+        field_name='azure_group__name',
+        lookup_expr='icontains',
+        label='Azure Group Name'
+    )
+    
+    class Meta:
+        model = AccessGrant
+        fields = [
+            'resource', 'contact', 'azure_group', 'control_method',
+            'access_level', 'granted_via', 'is_active'
         ]

@@ -309,3 +309,66 @@ class FortiGatePolicyFilterForm(NetBoxModelFilterSetForm):
         label='Description Search',
         help_text='Search in AI-generated policy descriptions'
     )
+
+
+class AccessGrantForm(NetBoxModelForm):
+    """Form for creating and editing Access Grants."""
+    
+    class Meta:
+        model = AccessGrant
+        fields = [
+            'resource', 'contact', 'azure_group', 'control_method',
+            'access_level', 'granted_via', 'is_active', 'tags'
+        ]
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Add helpful help text
+        self.fields['resource'].help_text = 'The protected resource being accessed'
+        self.fields['contact'].help_text = 'The NetBox contact receiving access'
+        self.fields['azure_group'].help_text = 'The Azure AD group granting access'
+        self.fields['control_method'].help_text = 'The access control method defining the rules'
+        self.fields['access_level'].help_text = 'Level of access being granted'
+        self.fields['granted_via'].help_text = 'Method by which access was granted'
+        
+        # Filter choices based on relationships
+        if self.instance and self.instance.pk:
+            # When editing, show the current relationships
+            self.fields['control_method'].queryset = AccessControlMethod.objects.filter(
+                resource=self.instance.resource
+            )
+        else:
+            # When creating, show all available control methods
+            self.fields['control_method'].queryset = AccessControlMethod.objects.all()
+
+
+class AccessGrantFilterForm(NetBoxModelFilterSetForm):
+    model = AccessGrant
+    
+    resource = forms.ModelChoiceField(
+        queryset=ProtectedResource.objects.all(),
+        required=False
+    )
+    contact = forms.CharField(required=False, label='Contact Name')
+    azure_group = forms.ModelChoiceField(
+        queryset=AzureGroup.objects.all(),
+        required=False
+    )
+    control_method = forms.ModelChoiceField(
+        queryset=AccessControlMethod.objects.all(),
+        required=False
+    )
+    access_level = forms.MultipleChoiceField(
+        choices=AccessLevelChoices.CHOICES,
+        required=False
+    )
+    granted_via = forms.MultipleChoiceField(
+        choices=[
+            ('direct_membership', 'Direct Membership'),
+            ('nested_group', 'Nested Group'),
+            ('dynamic_rule', 'Dynamic Rule'),
+        ],
+        required=False
+    )
+    is_active = forms.BooleanField(required=False)

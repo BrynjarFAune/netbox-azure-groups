@@ -1,6 +1,6 @@
 import django_tables2 as tables
 from netbox.tables import BaseTable, ChoiceFieldColumn
-from .models import AzureGroup, ProtectedResource, AccessControlMethod, FortiGatePolicy
+from .models import AzureGroup, ProtectedResource, AccessControlMethod, FortiGatePolicy, AccessGrant
 
 
 class AzureGroupTable(BaseTable):
@@ -117,4 +117,44 @@ class FortiGatePolicyTable(BaseTable):
             'policy_id', 'name', 'action', 'status', 
             'source_interfaces_display', 'destination_interfaces_display', 
             'nat_enabled', 'ai_description'
+        )
+
+
+class AccessGrantTable(BaseTable):
+    resource = tables.LinkColumn(
+        'plugins:netbox_azure_groups:protectedresource',
+        args=[tables.A('resource.pk')],
+        text=lambda record: record.resource.name
+    )
+    contact = tables.LinkColumn(
+        'tenancy:contact',
+        args=[tables.A('contact.pk')],
+        text=lambda record: record.contact.name
+    )
+    azure_group = tables.LinkColumn(
+        'plugins:netbox_azure_groups:azuregroup',
+        args=[tables.A('azure_group.pk')],
+        text=lambda record: record.azure_group.name
+    )
+    control_method = tables.LinkColumn(
+        'plugins:netbox_azure_groups:accesscontrolmethod',
+        args=[tables.A('control_method.pk')],
+        text=lambda record: record.control_method.name
+    )
+    access_level = ChoiceFieldColumn()
+    granted_via = ChoiceFieldColumn()
+    is_active = tables.BooleanColumn()
+    first_granted = tables.DateTimeColumn(format='M d, Y H:i')
+    last_verified = tables.DateTimeColumn(format='M d, Y H:i')
+
+    class Meta(BaseTable.Meta):
+        model = AccessGrant
+        fields = (
+            'resource', 'contact', 'azure_group', 'control_method',
+            'access_level', 'granted_via', 'is_active', 
+            'first_granted', 'last_verified'
+        )
+        default_columns = (
+            'resource', 'contact', 'azure_group', 'access_level', 
+            'granted_via', 'is_active', 'first_granted'
         )

@@ -40,6 +40,18 @@ menus = [
                     link_text='FortiGate Policies',
                     # No add button - policies are read-only and imported
                 ),
+            ]),
+            ('Access Management', [
+                PluginMenuItem(
+                    link='plugins:netbox_azure_groups:accessgrant_list',
+                    link_text='Access Grants',
+                    buttons=[
+                        PluginMenuItem(
+                            link='plugins:netbox_azure_groups:accessgrant_add',
+                            link_text='Add'
+                        )
+                    ]
+                ),
             ])
         ],
         icon_class='mdi mdi-shield-lock'
