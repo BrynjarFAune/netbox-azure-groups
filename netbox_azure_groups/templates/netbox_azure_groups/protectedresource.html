@@ -21,10 +21,6 @@
                         </td>
                     </tr>
                     <tr>
-                        <th scope="row">Environment</th>
-                        <td>{{ object.environment|default:"<span class='text-muted'>Not specified</span>" }}</td>
-                    </tr>
-                    <tr>
                         <th scope="row">Criticality</th>
                         <td>
                             {% if object.criticality == 'high' %}
@@ -70,14 +66,10 @@
             <div class="card-body">
                 <table class="table table-hover attr-table">
                     <tr>
-                        <th scope="row">Server Name</th>
-                        <td>{{ object.server_name|default:"<span class='text-muted'>Not specified</span>" }}</td>
-                    </tr>
-                    <tr>
                         <th scope="row">Resource URL</th>
                         <td>
-                            {% if object.resource_url %}
-                                <a href="{{ object.resource_url }}" target="_blank">{{ object.resource_url }}</a>
+                            {% if object.base_url %}
+                                <a href="{{ object.base_url }}" target="_blank">{{ object.base_url }}</a>
                             {% else %}
                                 <span class="text-muted">Not specified</span>
                             {% endif %}

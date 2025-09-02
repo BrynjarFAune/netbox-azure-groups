@@ -144,8 +144,8 @@ class ProtectedResourceForm(NetBoxModelForm):
     class Meta:
         model = ProtectedResource
         fields = [
-            'name', 'description', 'resource_type', 'environment',
-            'server_name', 'resource_url', 'ip_addresses', 'physical_location',
+            'name', 'description', 'resource_type', 'base_url',
+            'ip_addresses', 'physical_location',
             'owner_contact', 'business_unit', 'criticality', 'is_active', 'tags'
         ]
         widgets = {
@@ -154,7 +154,7 @@ class ProtectedResourceForm(NetBoxModelForm):
                 'rows': 2, 
                 'placeholder': '["192.168.1.10", "192.168.1.11"]'
             }),
-            'resource_url': forms.URLInput(attrs={
+            'base_url': forms.URLInput(attrs={
                 'placeholder': 'https://example.com/resource'
             }),
         }
@@ -164,7 +164,7 @@ class ProtectedResourceForm(NetBoxModelForm):
         
         # Add helpful placeholders and descriptions
         self.fields['name'].help_text = 'Descriptive name for this protected resource'
-        self.fields['server_name'].help_text = 'Server hostname if applicable'
+        self.fields['base_url'].help_text = 'Base URL for this resource if applicable'
         self.fields['ip_addresses'].help_text = 'JSON list of IP addresses associated with this resource'
         self.fields['physical_location'].help_text = 'Physical location (e.g., "Building A, Room 101")'
 
@@ -177,7 +177,6 @@ class ProtectedResourceFilterForm(NetBoxModelFilterSetForm):
         choices=ResourceTypeChoices.CHOICES,
         required=False
     )
-    environment = forms.CharField(required=False)
     criticality = forms.MultipleChoiceField(
         choices=CriticalityChoices.CHOICES,
         required=False

@@ -32,12 +32,11 @@ ContactGroupOwnershipFilterSet = GroupOwnershipFilterSet
 
 class ProtectedResourceFilterSet(filterset.FilterSet):
     name = django_filters.CharFilter(lookup_expr='icontains')
-    environment = django_filters.CharFilter(lookup_expr='icontains')
     business_unit = django_filters.CharFilter(lookup_expr='icontains')
     
     class Meta:
         model = ProtectedResource
         fields = [
-            'name', 'resource_type', 'environment', 'criticality', 
+            'name', 'resource_type', 'criticality', 
             'business_unit', 'is_active', 'owner_contact'
         ]

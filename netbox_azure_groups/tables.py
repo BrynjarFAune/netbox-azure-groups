@@ -37,7 +37,6 @@ class ProtectedResourceTable(BaseTable):
         linkify=lambda record: record.get_absolute_url()
     )
     resource_type = ChoiceFieldColumn()
-    environment = tables.Column(verbose_name='Environment')
     criticality = ChoiceFieldColumn()
     owner_contact = tables.Column(verbose_name='Owner')
     is_active = tables.BooleanColumn(verbose_name='Active')
@@ -47,10 +46,10 @@ class ProtectedResourceTable(BaseTable):
     class Meta(BaseTable.Meta):
         model = ProtectedResource
         fields = (
-            'id', 'name', 'resource_type', 'environment', 'criticality', 
+            'id', 'name', 'resource_type', 'criticality', 
             'owner_contact', 'is_active', 'access_method_count', 'grant_count'
         )
         default_columns = (
-            'id', 'name', 'resource_type', 'environment', 'criticality', 
+            'id', 'name', 'resource_type', 'criticality', 
             'is_active', 'access_method_count', 'grant_count'
         )
