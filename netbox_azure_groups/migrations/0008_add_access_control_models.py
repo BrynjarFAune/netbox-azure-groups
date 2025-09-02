@@ -7,8 +7,8 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('tenancy', '0024_contact'),
-        ('dcim', '0182_virtualdevicecontext'),
+        ('tenancy', '0020_remove_contactgroupmembership'),
+        ('dcim', '0210_macaddress_ordering'),
         ('netbox_azure_groups', '0005_contactgroupmembership_custom_field_data_and_more'),
     ]
 
