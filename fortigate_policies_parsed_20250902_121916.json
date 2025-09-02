@@ -1,0 +1,374 @@
+[
+  {
+    "policy_id": 1,
+    "name": "Policy-1",
+    "uuid": "44bd322a-3ffe-51ee-ee09-59efe67cf72b",
+    "status": "enable",
+    "action": "accept",
+    "source_interfaces": [
+      "lan"
+    ],
+    "destination_interfaces": [
+      "wan1"
+    ],
+    "source_addresses": [
+      "all"
+    ],
+    "destination_addresses": [
+      "all"
+    ],
+    "services": [
+      "ALL"
+    ],
+    "nat_enabled": true,
+    "nat_type": "",
+    "nat_outbound_interface": "wan1",
+    "utm_status": "disable",
+    "profile_group": "",
+    "log_traffic": "utm",
+    "schedule": "always",
+    "groups": [],
+    "comments": "",
+    "ai_description": "This policy allows traffic from lan to wan1 with NAT applied.",
+    "fortigate_host": "10.0.101.1",
+    "vdom": "root"
+  },
+  {
+    "policy_id": 4,
+    "name": "Ops - Internet",
+    "uuid": "ba030afc-5785-51ee-e92f-f7761c1a717c",
+    "status": "enable",
+    "action": "accept",
+    "source_interfaces": [
+      "Ops zone"
+    ],
+    "destination_interfaces": [
+      "wan1"
+    ],
+    "source_addresses": [
+      "all"
+    ],
+    "destination_addresses": [
+      "all"
+    ],
+    "services": [
+      "ALL"
+    ],
+    "nat_enabled": true,
+    "nat_type": "",
+    "nat_outbound_interface": "wan1",
+    "utm_status": "disable",
+    "profile_group": "",
+    "log_traffic": "utm",
+    "schedule": "always",
+    "groups": [],
+    "comments": "",
+    "ai_description": "This policy allows traffic from Ops zone to wan1 with NAT applied.",
+    "fortigate_host": "10.0.101.1",
+    "vdom": "root"
+  },
+  {
+    "policy_id": 5,
+    "name": "vpn_DK_local_0",
+    "uuid": "cd5d003c-586e-51ee-ba03-8652dc5ee418",
+    "status": "enable",
+    "action": "accept",
+    "source_interfaces": [
+      "Ops zone"
+    ],
+    "destination_interfaces": [
+      "DK"
+    ],
+    "source_addresses": [
+      "Client ops address"
+    ],
+    "destination_addresses": [
+      "DK_remote"
+    ],
+    "services": [
+      "ALL"
+    ],
+    "nat_enabled": false,
+    "nat_type": "",
+    "nat_outbound_interface": "",
+    "utm_status": "disable",
+    "profile_group": "",
+    "log_traffic": "all",
+    "schedule": "always",
+    "groups": [],
+    "comments": "VPN: DK (Created by VPN wizard)",
+    "ai_description": "This policy allows traffic from Ops zone (Client ops address) to DK (DK_remote).",
+    "fortigate_host": "10.0.101.1",
+    "vdom": "root"
+  },
+  {
+    "policy_id": 59,
+    "name": "VPN_DNS",
+    "uuid": "eec21f46-5d32-51ee-740f-3fe74d5967e0",
+    "status": "enable",
+    "action": "accept",
+    "source_interfaces": [
+      "ssl.root"
+    ],
+    "destination_interfaces": [
+      "Legacy zone"
+    ],
+    "source_addresses": [
+      "all"
+    ],
+    "destination_addresses": [
+      "DNS TosDC1",
+      "DNS TosDC2"
+    ],
+    "services": [
+      "ALL"
+    ],
+    "nat_enabled": false,
+    "nat_type": "",
+    "nat_outbound_interface": "",
+    "utm_status": "disable",
+    "profile_group": "",
+    "log_traffic": "utm",
+    "schedule": "always",
+    "groups": [
+      "AAD-admin",
+      "AAD-dev",
+      "AAD-external",
+      "AAD-fangstr",
+      "AAD-fangstrdev",
+      "AAD-ops",
+      "AAD-portainer",
+      "AAD-sales",
+      "AAD-support",
+      "AAD-VPN-Full"
+    ],
+    "comments": "",
+    "ai_description": "This policy allows traffic from ssl.root to Legacy zone (DNS TosDC1, DNS TosDC2).",
+    "fortigate_host": "10.0.101.1",
+    "vdom": "root"
+  },
+  {
+    "policy_id": 327,
+    "name": "VPN-BrynjarNett",
+    "uuid": "e225dc9a-e2f2-51ef-1ec1-db041432d3ac",
+    "status": "enable",
+    "action": "accept",
+    "source_interfaces": [
+      "ssl.root"
+    ],
+    "destination_interfaces": [
+      "LabZone"
+    ],
+    "source_addresses": [
+      "all"
+    ],
+    "destination_addresses": [
+      "Brynjar nett address"
+    ],
+    "services": [
+      "ALL"
+    ],
+    "nat_enabled": false,
+    "nat_type": "",
+    "nat_outbound_interface": "",
+    "utm_status": "disable",
+    "profile_group": "",
+    "log_traffic": "utm",
+    "schedule": "always",
+    "groups": [
+      "AAD-ops",
+      "AAD-VPN-Full"
+    ],
+    "comments": "",
+    "ai_description": "This policy allows traffic from ssl.root to LabZone (Brynjar nett address).",
+    "fortigate_host": "10.0.101.1",
+    "vdom": "root"
+  },
+  {
+    "policy_id": 8,
+    "name": "REMOTE_AAD_OPS",
+    "uuid": "1394ac86-5986-51ee-5405-4070508984d0",
+    "status": "enable",
+    "action": "accept",
+    "source_interfaces": [
+      "ssl.root"
+    ],
+    "destination_interfaces": [
+      "Ops zone"
+    ],
+    "source_addresses": [
+      "all"
+    ],
+    "destination_addresses": [
+      "Client admin address",
+      "Client dev address",
+      "Client fangstr address",
+      "Client fdev address",
+      "Client ops address",
+      "Client support address",
+      "Client Guest address",
+      "Client sales address",
+      "nucnet address"
+    ],
+    "services": [
+      "ALL"
+    ],
+    "nat_enabled": false,
+    "nat_type": "",
+    "nat_outbound_interface": "",
+    "utm_status": "disable",
+    "profile_group": "",
+    "log_traffic": "utm",
+    "schedule": "always",
+    "groups": [
+      "AAD-ops",
+      "AAD-VPN-Full"
+    ],
+    "comments": "",
+    "ai_description": "This policy allows traffic from ssl.root to Ops zone (Client admin address, Client dev address, Client fangstr address, Client fdev address, Client ops address, Client support address, Client Guest address, Client sales address, nucnet address).",
+    "fortigate_host": "10.0.101.1",
+    "vdom": "root"
+  },
+  {
+    "policy_id": 55,
+    "name": "REMOTE_AAD_OPS_legacy",
+    "uuid": "ddd5e5b6-5d17-51ee-e8f5-982001192938",
+    "status": "enable",
+    "action": "accept",
+    "source_interfaces": [
+      "ssl.root"
+    ],
+    "destination_interfaces": [
+      "Legacy zone"
+    ],
+    "source_addresses": [
+      "all"
+    ],
+    "destination_addresses": [
+      "Legacy 1 net address",
+      "Legacy 2 net address",
+      "Legacy 3 net address"
+    ],
+    "services": [
+      "ALL"
+    ],
+    "nat_enabled": false,
+    "nat_type": "",
+    "nat_outbound_interface": "",
+    "utm_status": "disable",
+    "profile_group": "",
+    "log_traffic": "all",
+    "schedule": "always",
+    "groups": [
+      "AAD-ops"
+    ],
+    "comments": " (Copy of REMOTE_AAD_OPS)",
+    "ai_description": "This policy allows traffic from ssl.root to Legacy zone (Legacy 1 net address, Legacy 2 net address, Legacy 3 net address).",
+    "fortigate_host": "10.0.101.1",
+    "vdom": "root"
+  },
+  {
+    "policy_id": 11,
+    "name": "VPN-Ops-DK",
+    "uuid": "04708e9e-5a3c-51ee-c033-bb4b6e4efc4b",
+    "status": "enable",
+    "action": "accept",
+    "source_interfaces": [
+      "ssl.root"
+    ],
+    "destination_interfaces": [
+      "DK"
+    ],
+    "source_addresses": [
+      "all"
+    ],
+    "destination_addresses": [
+      "DK_remote"
+    ],
+    "services": [
+      "ALL"
+    ],
+    "nat_enabled": false,
+    "nat_type": "",
+    "nat_outbound_interface": "",
+    "utm_status": "disable",
+    "profile_group": "",
+    "log_traffic": "utm",
+    "schedule": "always",
+    "groups": [
+      "AAD-ops"
+    ],
+    "comments": "",
+    "ai_description": "This policy allows traffic from ssl.root to DK (DK_remote).",
+    "fortigate_host": "10.0.101.1",
+    "vdom": "root"
+  },
+  {
+    "policy_id": 17,
+    "name": "SSID.Guest - Internet",
+    "uuid": "ec1f13b2-5b74-51ee-52cc-9794f493271e",
+    "status": "enable",
+    "action": "accept",
+    "source_interfaces": [
+      "SSID.Guest"
+    ],
+    "destination_interfaces": [
+      "wan1"
+    ],
+    "source_addresses": [
+      "SSID.Guest address"
+    ],
+    "destination_addresses": [
+      "all"
+    ],
+    "services": [
+      "ALL"
+    ],
+    "nat_enabled": true,
+    "nat_type": "",
+    "nat_outbound_interface": "wan1",
+    "utm_status": "disable",
+    "profile_group": "",
+    "log_traffic": "utm",
+    "schedule": "always",
+    "groups": [],
+    "comments": "",
+    "ai_description": "This policy allows traffic from SSID.Guest (SSID.Guest address) to wan1 with NAT applied.",
+    "fortigate_host": "10.0.101.1",
+    "vdom": "root"
+  },
+  {
+    "policy_id": 13,
+    "name": "Fangstr - internet",
+    "uuid": "2aa7c736-5ba8-51ee-4a9c-e36b51948745",
+    "status": "enable",
+    "action": "accept",
+    "source_interfaces": [
+      "Fangstr zone"
+    ],
+    "destination_interfaces": [
+      "wan1"
+    ],
+    "source_addresses": [
+      "Client fangstr address"
+    ],
+    "destination_addresses": [
+      "all"
+    ],
+    "services": [
+      "ALL"
+    ],
+    "nat_enabled": true,
+    "nat_type": "",
+    "nat_outbound_interface": "wan1",
+    "utm_status": "disable",
+    "profile_group": "",
+    "log_traffic": "utm",
+    "schedule": "always",
+    "groups": [],
+    "comments": "",
+    "ai_description": "This policy allows traffic from Fangstr zone (Client fangstr address) to wan1 with NAT applied.",
+    "fortigate_host": "10.0.101.1",
+    "vdom": "root"
+  }
+]

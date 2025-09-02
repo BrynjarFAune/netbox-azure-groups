@@ -12,7 +12,8 @@
       "Bash(python manage.py migrate:*)",
       "Bash(git log:*)",
       "Bash(scp:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(python:*)"
     ],
     "deny": [],
     "ask": [],
