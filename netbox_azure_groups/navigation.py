@@ -33,6 +33,13 @@ menus = [
                         )
                     ]
                 ),
+            ]),
+            ('Policies', [
+                PluginMenuItem(
+                    link='plugins:netbox_azure_groups:fortigatepolicy_list',
+                    link_text='FortiGate Policies',
+                    # No add button - policies are read-only and imported
+                ),
             ])
         ],
         icon_class='mdi mdi-shield-lock'

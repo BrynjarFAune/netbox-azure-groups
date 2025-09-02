@@ -1,0 +1,280 @@
+{% extends 'generic/object.html' %}
+{% load render_table from django_tables2 %}
+{% load buttons %}
+{% load perms %}
+
+{# Override control buttons to only show view actions - policies are read-only #}
+{% block control-buttons %}
+    {% block extra_controls %}{% endblock %}
+
+    {# Default buttons #}
+    {% if perms.extras.add_bookmark and object.bookmarks %}
+        {% bookmark_button object %}
+    {% endif %}
+    {% if perms.extras.add_subscription and object.subscriptions %}
+        {% subscribe_button object %}
+    {% endif %}
+    {# No edit/delete - FortiGate policies are read-only #}
+{% endblock control-buttons %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col col-md-6">
+        <div class="card">
+            <h5 class="card-header">FortiGate Policy Details</h5>
+            <div class="card-body">
+                <table class="table table-hover attr-table">
+                    <tr>
+                        <th scope="row">Policy ID</th>
+                        <td><code>{{ object.policy_id }}</code></td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Name</th>
+                        <td>{{ object.name|default:"<span class='text-muted'>No name</span>" }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Action</th>
+                        <td>
+                            {% if object.action == 'accept' %}
+                                <span class="badge bg-success">{{ object.get_action_display }}</span>
+                            {% elif object.action == 'deny' %}
+                                <span class="badge bg-danger">{{ object.get_action_display }}</span>
+                            {% else %}
+                                <span class="badge bg-info">{{ object.get_action_display }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Status</th>
+                        <td>
+                            {% if object.status == 'enable' %}
+                                <i class="mdi mdi-check-circle text-success"></i> {{ object.get_status_display }}
+                            {% else %}
+                                <i class="mdi mdi-close-circle text-danger"></i> {{ object.get_status_display }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">UUID</th>
+                        <td>
+                            {% if object.uuid %}
+                                <code>{{ object.uuid }}</code>
+                            {% else %}
+                                <span class="text-muted">Not specified</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">FortiGate Host</th>
+                        <td><code>{{ object.fortigate_host }}</code></td>
+                    </tr>
+                    <tr>
+                        <th scope="row">VDOM</th>
+                        <td><code>{{ object.vdom }}</code></td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Last Fetched</th>
+                        <td>{{ object.last_fetched|date:"M d, Y H:i" }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col col-md-6">
+        <div class="card">
+            <h5 class="card-header">Network Configuration</h5>
+            <div class="card-body">
+                <table class="table table-hover attr-table">
+                    <tr>
+                        <th scope="row">Source Interfaces</th>
+                        <td>{{ object.source_interfaces_display }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Source Addresses</th>
+                        <td>{{ object.source_addresses_display }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Destination Interfaces</th>
+                        <td>{{ object.destination_interfaces_display }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Destination Addresses</th>
+                        <td>{{ object.destination_addresses_display }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Services</th>
+                        <td>{{ object.services_display }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Schedule</th>
+                        <td>{{ object.schedule }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col col-md-6">
+        <div class="card">
+            <h5 class="card-header">NAT Configuration</h5>
+            <div class="card-body">
+                <table class="table table-hover attr-table">
+                    <tr>
+                        <th scope="row">NAT Enabled</th>
+                        <td>
+                            {% if object.nat_enabled %}
+                                <i class="mdi mdi-check-circle text-success"></i> Yes
+                            {% else %}
+                                <i class="mdi mdi-close-circle text-muted"></i> No
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% if object.nat_enabled %}
+                    <tr>
+                        <th scope="row">NAT Type</th>
+                        <td>
+                            {% if object.nat_type %}
+                                <span class="badge bg-info">{{ object.nat_type|upper }}</span>
+                            {% else %}
+                                <span class="text-muted">Not specified</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Outbound Interface</th>
+                        <td>{{ object.nat_outbound_interface|default:"<span class='text-muted'>Not specified</span>" }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">NAT Pool</th>
+                        <td>{{ object.nat_pool_name|default:"<span class='text-muted'>Not specified</span>" }}</td>
+                    </tr>
+                    {% endif %}
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col col-md-6">
+        <div class="card">
+            <h5 class="card-header">Security & Logging</h5>
+            <div class="card-body">
+                <table class="table table-hover attr-table">
+                    <tr>
+                        <th scope="row">UTM Status</th>
+                        <td>
+                            {% if object.utm_status == 'enable' %}
+                                <i class="mdi mdi-shield-check text-success"></i> Enabled
+                            {% else %}
+                                <i class="mdi mdi-shield-off text-muted"></i> Disabled
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Profile Group</th>
+                        <td>{{ object.profile_group|default:"<span class='text-muted'>Not specified</span>" }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Log Traffic</th>
+                        <td>
+                            <span class="badge bg-secondary">{{ object.get_log_traffic_display }}</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">User Groups</th>
+                        <td>
+                            {% if object.groups %}
+                                {% for group in object.groups %}
+                                    <span class="badge bg-primary">{{ group }}</span>{% if not forloop.last %} {% endif %}
+                                {% endfor %}
+                            {% else %}
+                                <span class="text-muted">None</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if object.ai_description %}
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="card">
+            <h5 class="card-header">
+                <i class="mdi mdi-brain text-info"></i> AI-Generated Description
+            </h5>
+            <div class="card-body">
+                <p class="mb-0">{{ object.ai_description }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if object.comments %}
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="card">
+            <h5 class="card-header">Comments</h5>
+            <div class="card-body">
+                {{ object.comments|linebreaksbr }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <h5 class="card-header">
+                <i class="mdi mdi-shield-lock text-warning"></i> Access Control Usage
+                <span class="badge bg-primary ms-2">{{ access_methods_count }}</span>
+            </h5>
+            <div class="card-body">
+                {% if access_methods_count > 0 %}
+                <p class="text-success"><i class="mdi mdi-information"></i> This FortiGate policy is used in {{ access_methods_count }} access control method(s), protecting {{ protected_resources_count }} resource(s).</p>
+                
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Access Method</th>
+                            <th>Protected Resource</th>
+                            <th>Azure Group</th>
+                            <th>Access Level</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for method in access_methods %}
+                        <tr>
+                            <td>
+                                <a href="{{ method.get_absolute_url }}">{{ method.name }}</a>
+                            </td>
+                            <td>
+                                <a href="{{ method.resource.get_absolute_url }}">{{ method.resource.name }}</a>
+                                <span class="badge bg-secondary ms-1">{{ method.resource.get_resource_type_display }}</span>
+                            </td>
+                            <td>
+                                <a href="{{ method.azure_group.get_absolute_url }}">{{ method.azure_group.name }}</a>
+                            </td>
+                            <td>
+                                <span class="badge bg-info">{{ method.get_access_level_display }}</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p class="text-muted"><i class="mdi mdi-information-outline"></i> This FortiGate policy is not currently linked to any access control methods. You can create an access control method to link this policy to protected resources.</p>
+                
+                <a href="{% url 'plugins:netbox_azure_groups:accesscontrolmethod_add' %}" class="btn btn-primary">
+                    <i class="mdi mdi-plus"></i> Create Access Control Method
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

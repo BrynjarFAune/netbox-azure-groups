@@ -26,6 +26,11 @@ urlpatterns = [
     path('access-control-methods/<int:pk>/delete/', views.AccessControlMethodDeleteView.as_view(), name='accesscontrolmethod_delete'),
     path('access-control-methods/<int:pk>/changelog/', views.AccessControlMethodChangeLogView.as_view(), name='accesscontrolmethod_changelog'),
     
+    # FortiGate Policies - Read Only
+    path('fortigate-policies/', views.FortiGatePolicyListView.as_view(), name='fortigatepolicy_list'),
+    path('fortigate-policies/<int:pk>/', views.FortiGatePolicyView.as_view(), name='fortigatepolicy'),
+    path('fortigate-policies/<int:pk>/changelog/', views.FortiGatePolicyChangeLogView.as_view(), name='fortigatepolicy_changelog'),
+    
     # API URLs
     path('api/', include('netbox_azure_groups.api.urls')),
 ]

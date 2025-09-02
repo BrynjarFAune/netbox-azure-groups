@@ -1,6 +1,6 @@
 import django_tables2 as tables
 from netbox.tables import BaseTable, ChoiceFieldColumn
-from .models import AzureGroup, ProtectedResource, AccessControlMethod
+from .models import AzureGroup, ProtectedResource, AccessControlMethod, FortiGatePolicy
 
 
 class AzureGroupTable(BaseTable):
@@ -84,4 +84,37 @@ class AccessControlMethodTable(BaseTable):
         default_columns = (
             'id', 'name', 'resource', 'control_type', 'azure_group', 
             'access_level', 'is_active', 'grant_count'
+        )
+
+
+class FortiGatePolicyTable(BaseTable):
+    policy_id = tables.Column(
+        verbose_name='Policy ID',
+        linkify=lambda record: record.get_absolute_url()
+    )
+    name = tables.Column(verbose_name='Name')
+    action = ChoiceFieldColumn()
+    status = ChoiceFieldColumn()
+    source_interfaces_display = tables.Column(verbose_name='Source', accessor='source_interfaces_display')
+    destination_interfaces_display = tables.Column(verbose_name='Destination', accessor='destination_interfaces_display')
+    services_display = tables.Column(verbose_name='Services', accessor='services_display')
+    nat_enabled = tables.BooleanColumn(verbose_name='NAT')
+    utm_status = ChoiceFieldColumn(verbose_name='UTM')
+    ai_description = tables.Column(
+        verbose_name='Description', 
+        attrs={'td': {'class': 'text-truncate', 'style': 'max-width: 300px;'}},
+        orderable=False
+    )
+
+    class Meta(BaseTable.Meta):
+        model = FortiGatePolicy
+        fields = (
+            'policy_id', 'name', 'action', 'status', 
+            'source_interfaces_display', 'destination_interfaces_display', 'services_display',
+            'nat_enabled', 'utm_status', 'ai_description'
+        )
+        default_columns = (
+            'policy_id', 'name', 'action', 'status', 
+            'source_interfaces_display', 'destination_interfaces_display', 
+            'nat_enabled', 'ai_description'
         )

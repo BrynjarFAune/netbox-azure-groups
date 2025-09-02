@@ -137,3 +137,40 @@ class AccessControlMethodDeleteView(generic.ObjectDeleteView):
 
 class AccessControlMethodChangeLogView(generic.ObjectChangeLogView):
     queryset = models.AccessControlMethod.objects.all()
+
+
+# FortiGate Policy Views
+
+class FortiGatePolicyView(generic.ObjectView):
+    queryset = models.FortiGatePolicy.objects.prefetch_related('tags')
+    
+    def get_extra_context(self, request, instance):
+        # Get access control methods using this policy
+        access_methods = models.AccessControlMethod.objects.filter(
+            control_type='fortigate_policy',
+            configuration__policy_id=instance.policy_id
+        ).select_related('resource', 'azure_group')
+        
+        # Get resources this policy protects (through access methods)
+        protected_resources = models.ProtectedResource.objects.filter(
+            access_methods__in=access_methods
+        ).distinct()
+        
+        return {
+            'access_methods': access_methods,
+            'access_methods_count': access_methods.count(),
+            'protected_resources': protected_resources,
+            'protected_resources_count': protected_resources.count(),
+        }
+
+
+class FortiGatePolicyListView(generic.ObjectListView):
+    queryset = models.FortiGatePolicy.objects.all()
+    table = tables.FortiGatePolicyTable
+    filterset = filtersets.FortiGatePolicyFilterSet
+    filterset_form = forms.FortiGatePolicyFilterForm
+    template_name = 'netbox_azure_groups/fortigatepolicy_list.html'
+
+
+class FortiGatePolicyChangeLogView(generic.ObjectChangeLogView):
+    queryset = models.FortiGatePolicy.objects.all()

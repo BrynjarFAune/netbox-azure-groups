@@ -280,3 +280,32 @@ class AccessControlMethodFilterForm(NetBoxModelFilterSetForm):
         required=False
     )
     is_active = forms.BooleanField(required=False)
+
+
+class FortiGatePolicyFilterForm(NetBoxModelFilterSetForm):
+    model = FortiGatePolicy
+    
+    policy_id = forms.IntegerField(required=False, label='Policy ID')
+    name = forms.CharField(required=False)
+    action = forms.MultipleChoiceField(
+        choices=[('accept', 'Accept'), ('deny', 'Deny'), ('ipsec', 'IPSec')],
+        required=False
+    )
+    status = forms.MultipleChoiceField(
+        choices=[('enable', 'Enabled'), ('disable', 'Disabled')],
+        required=False
+    )
+    nat_enabled = forms.BooleanField(required=False, label='NAT Enabled')
+    utm_status = forms.MultipleChoiceField(
+        choices=[('enable', 'Enabled'), ('disable', 'Disabled')],
+        required=False,
+        label='UTM Status'
+    )
+    fortigate_host = forms.CharField(required=False, label='FortiGate Host')
+    
+    # Special text search field for AI descriptions
+    description_search = forms.CharField(
+        required=False, 
+        label='Description Search',
+        help_text='Search in AI-generated policy descriptions'
+    )
