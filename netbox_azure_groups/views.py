@@ -1,6 +1,7 @@
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Count
 from django.shortcuts import render
+from django.views.generic import View
 from netbox.views import generic
 from utilities.views import ViewTab, register_model_view
 from . import filtersets, forms, models, tables
@@ -248,7 +249,7 @@ class AccessGrantChangeLogView(generic.ObjectChangeLogView):
 
 # Dashboard Views
 
-class AccessControlDashboardView(generic.GenericView):
+class AccessControlDashboardView(View):
     """Dashboard showing comprehensive access control metrics and insights."""
     template_name = 'netbox_azure_groups/dashboard.html'
     
