@@ -5,6 +5,12 @@ menus = [
     PluginMenu(
         label='Access Control',
         groups=[
+            ('Overview', [
+                PluginMenuItem(
+                    link='plugins:netbox_azure_groups:dashboard',
+                    link_text='Dashboard',
+                ),
+            ]),
             ('Directory', [
                 PluginMenuItem(
                     link='plugins:netbox_azure_groups:azuregroup_list',

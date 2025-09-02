@@ -1,0 +1,427 @@
+{% extends 'base/layout.html' %}
+{% load helpers %}
+
+{% block title %}Access Control Dashboard{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1><i class="mdi mdi-view-dashboard text-primary"></i> Access Control Dashboard</h1>
+        <p class="text-muted">Comprehensive overview of your access control system</p>
+    </div>
+    <div>
+        <div class="btn-group" role="group">
+            <a href="{% url 'plugins:netbox_azure_groups:protectedresource_add' %}" class="btn btn-primary">
+                <i class="mdi mdi-plus"></i> Add Resource
+            </a>
+            <a href="{% url 'plugins:netbox_azure_groups:accesscontrolmethod_add' %}" class="btn btn-success">
+                <i class="mdi mdi-key-plus"></i> Add Method
+            </a>
+            <a href="{% url 'plugins:netbox_azure_groups:accessgrant_add' %}" class="btn btn-info">
+                <i class="mdi mdi-account-plus"></i> Add Grant
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- System Overview Stats -->
+<div class="row mb-4">
+    <div class="col-12">
+        <h3><i class="mdi mdi-chart-bar text-success"></i> System Overview</h3>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-2">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="mdi mdi-database-lock display-4 text-primary"></i>
+                <h3 class="mt-2">{{ stats.total_resources }}</h3>
+                <p class="text-muted mb-0">Protected Resources</p>
+                <small class="text-success">{{ stats.active_resources }} active</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="mdi mdi-key-variant display-4 text-warning"></i>
+                <h3 class="mt-2">{{ stats.total_methods }}</h3>
+                <p class="text-muted mb-0">Control Methods</p>
+                <small class="text-success">{{ stats.active_methods }} active</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="mdi mdi-account-check display-4 text-success"></i>
+                <h3 class="mt-2">{{ stats.total_grants }}</h3>
+                <p class="text-muted mb-0">Access Grants</p>
+                <small class="text-success">{{ stats.active_grants }} active</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="mdi mdi-account-group display-4 text-info"></i>
+                <h3 class="mt-2">{{ stats.total_groups }}</h3>
+                <p class="text-muted mb-0">Azure Groups</p>
+                <small class="text-muted">Directory sync</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="mdi mdi-firewall display-4 text-danger"></i>
+                <h3 class="mt-2">{{ stats.total_policies }}</h3>
+                <p class="text-muted mb-0">FortiGate Policies</p>
+                <small class="text-muted">Imported policies</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="mdi mdi-shield-check display-4 text-primary"></i>
+                <h3 class="mt-2">{{ stats.coverage_percentage }}%</h3>
+                <p class="text-muted mb-0">Coverage</p>
+                <small class="text-info">{{ stats.resources_with_grants }} of {{ stats.total_resources }}</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Resource & Method Breakdown -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <h5 class="card-header">
+                <i class="mdi mdi-chart-pie text-warning"></i> Resource Types Distribution
+            </h5>
+            <div class="card-body">
+                {% if resource_types %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Count</th>
+                                    <th>Percentage</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in resource_types %}
+                                <tr>
+                                    <td>{{ item.resource_type|capfirst }}</td>
+                                    <td><span class="badge bg-secondary">{{ item.count }}</span></td>
+                                    <td>
+                                        {% widthratio item.count stats.total_resources 100 as percentage %}
+                                        <div class="progress" style="height: 8px;">
+                                            <div class="progress-bar bg-primary" style="width: {{ percentage }}%"></div>
+                                        </div>
+                                        <small>{{ percentage }}%</small>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted">No resources configured yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <h5 class="card-header">
+                <i class="mdi mdi-cog text-info"></i> Control Method Types
+            </h5>
+            <div class="card-body">
+                {% if control_types %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Count</th>
+                                    <th>Percentage</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in control_types %}
+                                <tr>
+                                    <td>
+                                        {% if item.control_type == 'fortigate_policy' %}
+                                            <i class="mdi mdi-firewall text-danger"></i> FortiGate Policy
+                                        {% elif item.control_type == 'azure_conditional_access' %}
+                                            <i class="mdi mdi-microsoft-azure text-primary"></i> Azure CA
+                                        {% else %}
+                                            {{ item.control_type|capfirst }}
+                                        {% endif %}
+                                    </td>
+                                    <td><span class="badge bg-secondary">{{ item.count }}</span></td>
+                                    <td>
+                                        {% widthratio item.count stats.total_methods 100 as percentage %}
+                                        <div class="progress" style="height: 8px;">
+                                            <div class="progress-bar bg-info" style="width: {{ percentage }}%"></div>
+                                        </div>
+                                        <small>{{ percentage }}%</small>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted">No control methods configured yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Top Resources and Groups -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <h5 class="card-header">
+                <i class="mdi mdi-trophy text-warning"></i> Most Accessed Resources
+            </h5>
+            <div class="card-body">
+                {% if top_resources %}
+                    <div class="table-responsive">
+                        <table class="table table-hover table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Resource</th>
+                                    <th>Type</th>
+                                    <th>Grants</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for resource in top_resources %}
+                                <tr>
+                                    <td>
+                                        <a href="{{ resource.get_absolute_url }}">{{ resource.name }}</a>
+                                        {% if resource.criticality == 'critical' %}
+                                            <i class="mdi mdi-alert text-danger ms-1" title="Critical resource"></i>
+                                        {% elif resource.criticality == 'high' %}
+                                            <i class="mdi mdi-alert-octagon text-warning ms-1" title="High priority"></i>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ resource.get_resource_type_display }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-success">{{ resource.grant_count }}</span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-3">
+                        <i class="mdi mdi-database-off text-muted display-4"></i>
+                        <p class="text-muted mt-2">No resources with access grants yet.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <h5 class="card-header">
+                <i class="mdi mdi-account-star text-primary"></i> Most Active Azure Groups
+            </h5>
+            <div class="card-body">
+                {% if top_groups %}
+                    <div class="table-responsive">
+                        <table class="table table-hover table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Group</th>
+                                    <th>Type</th>
+                                    <th>Grants</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for group in top_groups %}
+                                <tr>
+                                    <td>
+                                        <a href="{{ group.get_absolute_url }}">{{ group.name }}</a>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">{{ group.get_group_type_display }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-success">{{ group.grant_count }}</span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-3">
+                        <i class="mdi mdi-account-group-outline text-muted display-4"></i>
+                        <p class="text-muted mt-2">No groups with access grants yet.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="row mb-4">
+    <div class="col-12">
+        <h3><i class="mdi mdi-clock-outline text-info"></i> Recent Activity</h3>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card">
+            <h5 class="card-header">
+                <i class="mdi mdi-account-plus text-success"></i> Recent Access Grants
+            </h5>
+            <div class="card-body">
+                {% if recent_grants %}
+                    {% for grant in recent_grants %}
+                    <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                        <div>
+                            <strong><a href="{{ grant.resource.get_absolute_url }}">{{ grant.resource.name }}</a></strong>
+                            <br>
+                            <small class="text-muted">
+                                <a href="{% url 'tenancy:contact' grant.contact.pk %}">{{ grant.contact.name }}</a>
+                                via <a href="{{ grant.azure_group.get_absolute_url }}">{{ grant.azure_group.name }}</a>
+                            </small>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge bg-info">{{ grant.get_access_level_display }}</span>
+                            <br>
+                            <small class="text-muted">{{ grant.first_granted|timesince }} ago</small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">No recent grants.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <h5 class="card-header">
+                <i class="mdi mdi-database-plus text-primary"></i> New Resources
+            </h5>
+            <div class="card-body">
+                {% if recent_resources %}
+                    {% for resource in recent_resources %}
+                    <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                        <div>
+                            <strong><a href="{{ resource.get_absolute_url }}">{{ resource.name }}</a></strong>
+                            <br>
+                            <small class="text-muted">{{ resource.get_resource_type_display }}</small>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge bg-secondary">{{ resource.get_criticality_display }}</span>
+                            <br>
+                            <small class="text-muted">{{ resource.created|timesince }} ago</small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">No recent resources.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <h5 class="card-header">
+                <i class="mdi mdi-key-plus text-warning"></i> New Control Methods
+            </h5>
+            <div class="card-body">
+                {% if recent_methods %}
+                    {% for method in recent_methods %}
+                    <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                        <div>
+                            <strong><a href="{{ method.get_absolute_url }}">{{ method.name }}</a></strong>
+                            <br>
+                            <small class="text-muted">
+                                <a href="{{ method.resource.get_absolute_url }}">{{ method.resource.name }}</a>
+                            </small>
+                        </div>
+                        <div class="text-end">
+                            {% if method.control_type == 'fortigate_policy' %}
+                                <span class="badge bg-danger"><i class="mdi mdi-firewall"></i> FortiGate</span>
+                            {% else %}
+                                <span class="badge bg-primary">{{ method.get_control_type_display }}</span>
+                            {% endif %}
+                            <br>
+                            <small class="text-muted">{{ method.created|timesince }} ago</small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">No recent methods.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <h5 class="card-header">
+                <i class="mdi mdi-rocket-launch text-success"></i> Quick Actions
+            </h5>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="d-grid">
+                            <a href="{% url 'plugins:netbox_azure_groups:protectedresource_list' %}" class="btn btn-outline-primary">
+                                <i class="mdi mdi-database-search"></i><br>
+                                Browse Resources
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="d-grid">
+                            <a href="{% url 'plugins:netbox_azure_groups:fortigatepolicy_list' %}" class="btn btn-outline-danger">
+                                <i class="mdi mdi-firewall"></i><br>
+                                Browse Policies
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="d-grid">
+                            <a href="{% url 'plugins:netbox_azure_groups:azuregroup_list' %}" class="btn btn-outline-info">
+                                <i class="mdi mdi-account-group"></i><br>
+                                Browse Groups
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="d-grid">
+                            <a href="{% url 'plugins:netbox_azure_groups:accessgrant_list' %}" class="btn btn-outline-success">
+                                <i class="mdi mdi-account-check"></i><br>
+                                View All Grants
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

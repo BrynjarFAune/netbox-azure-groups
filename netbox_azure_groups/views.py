@@ -1,5 +1,6 @@
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Count
+from django.shortcuts import render
 from netbox.views import generic
 from utilities.views import ViewTab, register_model_view
 from . import filtersets, forms, models, tables
@@ -243,3 +244,148 @@ class AccessGrantDeleteView(generic.ObjectDeleteView):
 
 class AccessGrantChangeLogView(generic.ObjectChangeLogView):
     queryset = models.AccessGrant.objects.all()
+
+
+# Dashboard Views
+
+class AccessControlDashboardView(generic.GenericView):
+    """Dashboard showing comprehensive access control metrics and insights."""
+    template_name = 'netbox_azure_groups/dashboard.html'
+    
+    def get(self, request):
+        # Get comprehensive statistics
+        stats = self._get_dashboard_stats()
+        
+        # Get recent activity
+        recent_grants = models.AccessGrant.objects.select_related(
+            'resource', 'contact', 'azure_group'
+        ).order_by('-first_granted')[:10]
+        
+        recent_resources = models.ProtectedResource.objects.order_by('-created')[:5]
+        recent_methods = models.AccessControlMethod.objects.select_related(
+            'resource', 'azure_group'
+        ).order_by('-created')[:5]
+        
+        # Get top resources by grant count
+        from django.db.models import Count
+        top_resources = models.ProtectedResource.objects.annotate(
+            grant_count=Count('access_grants')
+        ).filter(grant_count__gt=0).order_by('-grant_count')[:10]
+        
+        # Get top Azure groups by grant count
+        top_groups = models.AzureGroup.objects.annotate(
+            grant_count=Count('access_grants')
+        ).filter(grant_count__gt=0).order_by('-grant_count')[:10]
+        
+        # Get resource type distribution
+        resource_types = models.ProtectedResource.objects.values(
+            'resource_type'
+        ).annotate(count=Count('id')).order_by('-count')
+        
+        # Get control method types distribution
+        control_types = models.AccessControlMethod.objects.values(
+            'control_type'
+        ).annotate(count=Count('id')).order_by('-count')
+        
+        context = {
+            'stats': stats,
+            'recent_grants': recent_grants,
+            'recent_resources': recent_resources,
+            'recent_methods': recent_methods,
+            'top_resources': top_resources,
+            'top_groups': top_groups,
+            'resource_types': resource_types,
+            'control_types': control_types,
+        }
+        
+        return render(request, self.template_name, context)
+    
+    def _get_dashboard_stats(self):
+        """Calculate comprehensive dashboard statistics."""
+        from django.db.models import Count, Q
+        from datetime import datetime, timedelta
+        
+        # Basic counts
+        total_resources = models.ProtectedResource.objects.count()
+        total_methods = models.AccessControlMethod.objects.count()
+        total_grants = models.AccessGrant.objects.count()
+        total_groups = models.AzureGroup.objects.count()
+        total_policies = models.FortiGatePolicy.objects.count()
+        
+        # Active/inactive counts
+        active_resources = models.ProtectedResource.objects.filter(is_active=True).count()
+        active_methods = models.AccessControlMethod.objects.filter(is_active=True).count()
+        active_grants = models.AccessGrant.objects.filter(is_active=True).count()
+        
+        # Recent activity (last 30 days)
+        thirty_days_ago = datetime.now() - timedelta(days=30)
+        recent_grants = models.AccessGrant.objects.filter(
+            first_granted__gte=thirty_days_ago
+        ).count()
+        
+        # Resource type breakdown
+        resource_critical = models.ProtectedResource.objects.filter(
+            criticality='critical'
+        ).count()
+        resource_high = models.ProtectedResource.objects.filter(
+            criticality='high'
+        ).count()
+        
+        # Control method types
+        fortigate_methods = models.AccessControlMethod.objects.filter(
+            control_type='fortigate_policy'
+        ).count()
+        azure_ca_methods = models.AccessControlMethod.objects.filter(
+            control_type='azure_conditional_access'
+        ).count()
+        
+        # Grant distribution
+        direct_grants = models.AccessGrant.objects.filter(
+            granted_via='direct_membership'
+        ).count()
+        nested_grants = models.AccessGrant.objects.filter(
+            granted_via='nested_group'
+        ).count()
+        
+        # Coverage metrics
+        resources_with_grants = models.ProtectedResource.objects.annotate(
+            grant_count=Count('access_grants')
+        ).filter(grant_count__gt=0).count()
+        
+        coverage_percentage = (
+            (resources_with_grants / total_resources * 100) 
+            if total_resources > 0 else 0
+        )
+        
+        return {
+            # Basic counts
+            'total_resources': total_resources,
+            'total_methods': total_methods,
+            'total_grants': total_grants,
+            'total_groups': total_groups,
+            'total_policies': total_policies,
+            
+            # Active counts
+            'active_resources': active_resources,
+            'active_methods': active_methods,
+            'active_grants': active_grants,
+            
+            # Recent activity
+            'recent_grants': recent_grants,
+            
+            # Resource breakdown
+            'resource_critical': resource_critical,
+            'resource_high': resource_high,
+            
+            # Method types
+            'fortigate_methods': fortigate_methods,
+            'azure_ca_methods': azure_ca_methods,
+            
+            # Grant types
+            'direct_grants': direct_grants,
+            'nested_grants': nested_grants,
+            
+            # Coverage
+            'resources_with_grants': resources_with_grants,
+            'coverage_percentage': round(coverage_percentage, 1),
+        }

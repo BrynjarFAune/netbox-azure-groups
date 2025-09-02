@@ -4,6 +4,11 @@ from . import views
 app_name = 'netbox_azure_groups'
 
 urlpatterns = [
+    # Dashboard
+    path('', views.AccessControlDashboardView.as_view(), name='dashboard'),
+    
+    # Home/index redirect to dashboard  
+    path('dashboard/', views.AccessControlDashboardView.as_view(), name='dashboard_alt'),
     # Azure Groups - View Only (no add/edit)
     path('azure-groups/', views.AzureGroupListView.as_view(), name='azuregroup_list'),
     path('azure-groups/<int:pk>/', views.AzureGroupView.as_view(), name='azuregroup'),
