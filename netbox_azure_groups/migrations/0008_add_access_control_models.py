@@ -13,96 +13,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        # Add new fields to AzureGroup to replace the old ones
-        migrations.AddField(
-            model_name='azuregroup',
-            name='azure_created',
-            field=models.DateTimeField(blank=True, help_text='When the group was created in Azure AD', null=True),
-        ),
-        migrations.AddField(
-            model_name='azuregroup',
-            name='azure_modified',
-            field=models.DateTimeField(blank=True, help_text='When the group was last modified in Azure AD', null=True),
-        ),
-        migrations.AddField(
-            model_name='azuregroup',
-            name='group_type',
-            field=models.CharField(
-                choices=[
-                    ('security', 'Security Group'), 
-                    ('microsoft365', 'Microsoft 365 Group'), 
-                    ('mail_security', 'Mail-Enabled Security'), 
-                    ('distribution', 'Distribution List'), 
-                    ('dynamic_security', 'Dynamic Security'), 
-                    ('dynamic_m365', 'Dynamic Microsoft 365')
-                ], 
-                db_index=True, 
-                default='security', 
-                help_text='Type of Azure AD group', 
-                max_length=50
-            ),
-        ),
-        migrations.AddField(
-            model_name='azuregroup',
-            name='source',
-            field=models.CharField(
-                choices=[
-                    ('azure_ad', 'Azure AD Native'), 
-                    ('on_premises', 'On-Premises AD'), 
-                    ('external', 'External Directory')
-                ], 
-                db_index=True, 
-                default='azure_ad', 
-                help_text='Where group is mastered', 
-                max_length=50
-            ),
-        ),
-        migrations.AddField(
-            model_name='azuregroup',
-            name='is_security_enabled',
-            field=models.BooleanField(default=False, help_text='Whether the group is security-enabled'),
-        ),
-        migrations.AddField(
-            model_name='azuregroup',
-            name='is_mail_enabled',
-            field=models.BooleanField(default=False, help_text='Whether the group is mail-enabled'),
-        ),
-        migrations.AddField(
-            model_name='azuregroup',
-            name='mail',
-            field=models.EmailField(blank=True, db_index=True, help_text='Group email address', max_length=254),
-        ),
-        migrations.AddField(
-            model_name='azuregroup',
-            name='membership_type',
-            field=models.CharField(
-                choices=[('assigned', 'Assigned'), ('dynamic', 'Dynamic')], 
-                default='assigned', 
-                help_text='Type of membership assignment', 
-                max_length=20
-            ),
-        ),
-        migrations.AddField(
-            model_name='azuregroup',
-            name='membership_rule',
-            field=models.TextField(blank=True, help_text='Azure AD dynamic membership rule'),
-        ),
-        migrations.AddField(
-            model_name='azuregroup',
-            name='member_count',
-            field=models.IntegerField(default=0, help_text='Total number of members'),
-        ),
-        migrations.AddField(
-            model_name='azuregroup',
-            name='owner_count',
-            field=models.IntegerField(default=0, help_text='Total number of owners'),
-        ),
-        migrations.AddField(
-            model_name='azuregroup',
-            name='is_deleted',
-            field=models.BooleanField(default=False, help_text='Soft delete flag for audit retention'),
-        ),
-
         # Create new GroupMembership model
         migrations.CreateModel(
             name='GroupMembership',
@@ -359,15 +269,5 @@ class Migration(migrations.Migration):
                 fields=('resource', 'contact', 'azure_group', 'control_method'), 
                 name='unique_access_grant'
             ),
-        ),
-
-        # Add new indexes to AzureGroup
-        migrations.AddIndex(
-            model_name='azuregroup',
-            index=models.Index(fields=['source', 'group_type'], name='netbox_azure_groups_azuregroup_source_type_idx'),
-        ),
-        migrations.AddIndex(
-            model_name='azuregroup',
-            index=models.Index(fields=['last_sync'], name='netbox_azure_groups_azuregroup_last_sync_idx'),
         ),
     ]
