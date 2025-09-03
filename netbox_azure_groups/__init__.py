@@ -1,7 +1,7 @@
 from netbox.plugins import PluginConfig
 
 class AccessControlConfig(PluginConfig):
-    name = 'netbox_access_control'  # Updated to match access control naming
+    name = 'netbox_azure_groups'  # Must match Python module name
     verbose_name = 'Access Control'
     description = 'Comprehensive access control management with FortiGate integration and Azure AD groups'
     version = '1.0.0'
@@ -25,7 +25,7 @@ class AccessControlConfig(PluginConfig):
     # Cache settings for performance
     caching_config = {
         'timeout': 300,  # 5 minutes
-        'cache_key': 'netbox_access_control',
+        'cache_key': 'netbox_azure_groups',
     }
 
 config = AccessControlConfig
