@@ -1,7 +1,7 @@
 from django.urls import path, include
 from . import views
 
-app_name = 'netbox_access_control'
+app_name = 'netbox_azure_groups'
 
 urlpatterns = [
     # Dashboard
