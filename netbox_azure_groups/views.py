@@ -214,7 +214,7 @@ class FortiGatePolicyListView(generic.ObjectListView):
         groups_count=Count(
             'access_control_method__azure_group',
             distinct=True,
-            filter=models.Q(access_control_method__control_type='fortigate_policy')
+            filter=Q(access_control_method__control_type='fortigate_policy')
         )
     )
     table = tables.FortiGatePolicyTable
