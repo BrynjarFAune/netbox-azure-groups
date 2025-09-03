@@ -1,13 +1,13 @@
 from netbox.plugins import PluginConfig
 
-class AzureGroupsConfig(PluginConfig):
-    name = 'netbox_azure_groups'
-    verbose_name = 'Azure Groups'
-    description = 'Manage Azure AD groups and memberships in NetBox with source-based access control'
+class AccessControlConfig(PluginConfig):
+    name = 'netbox_azure_groups'  # Keep internal name for compatibility
+    verbose_name = 'Access Control'
+    description = 'Comprehensive access control management with FortiGate integration and Azure AD groups'
     version = '1.0.0'
     author = 'Brynjar F. Aune'
     author_email = 'brynjar.aune@example.com'
-    base_url = 'azure-groups'
+    base_url = 'access-control'
     required_settings = []
     
     # Plugin-specific settings
@@ -28,4 +28,4 @@ class AzureGroupsConfig(PluginConfig):
         'cache_key': 'netbox_azure_groups',
     }
 
-config = AzureGroupsConfig
+config = AccessControlConfig

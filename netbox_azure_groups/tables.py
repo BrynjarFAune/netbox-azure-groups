@@ -1,6 +1,6 @@
 import django_tables2 as tables
 from netbox.tables import BaseTable, ChoiceFieldColumn
-from .models import AzureGroup, ProtectedResource, AccessControlMethod, FortiGatePolicy, AccessGrant
+from .models import AzureGroup, ProtectedResource, AccessControlMethod, FortiGatePolicy, AccessGrant, BusinessUnit
 
 
 class AzureGroupTable(BaseTable):
@@ -30,6 +30,30 @@ class AzureGroupTable(BaseTable):
             del self.base_columns['actions']
 
 
+class BusinessUnitTable(BaseTable):
+    id = tables.Column(verbose_name='ID')
+    name = tables.Column(
+        verbose_name='Name',
+        linkify=lambda record: record.get_absolute_url()
+    )
+    parent = tables.Column(
+        verbose_name='Parent Unit',
+        linkify=lambda record: record.parent.get_absolute_url() if record.parent else None
+    )
+    contact = tables.Column(
+        verbose_name='Contact',
+        linkify=lambda record: record.contact.get_absolute_url() if record.contact else None
+    )
+    child_count = tables.Column(verbose_name='Child Units', empty_values=())
+    resource_count = tables.Column(verbose_name='Resources', empty_values=())
+    is_active = tables.BooleanColumn(verbose_name='Active')
+
+    class Meta(BaseTable.Meta):
+        model = BusinessUnit
+        fields = ('id', 'name', 'parent', 'contact', 'child_count', 'resource_count', 'is_active')
+        default_columns = ('id', 'name', 'parent', 'contact', 'child_count', 'resource_count', 'is_active')
+
+
 class ProtectedResourceTable(BaseTable):
     id = tables.Column(verbose_name='ID')
     name = tables.Column(
@@ -38,6 +62,18 @@ class ProtectedResourceTable(BaseTable):
     )
     resource_type = ChoiceFieldColumn()
     criticality = ChoiceFieldColumn()
+    business_unit = tables.Column(
+        verbose_name='Business Unit',
+        linkify=lambda record: record.business_unit.get_absolute_url() if record.business_unit else None
+    )
+    site = tables.Column(
+        verbose_name='Site',
+        linkify=lambda record: record.site.get_absolute_url() if record.site else None
+    )
+    location = tables.Column(
+        verbose_name='Location',
+        linkify=lambda record: record.location.get_absolute_url() if record.location else None
+    )
     owner_contact = tables.Column(verbose_name='Owner')
     is_active = tables.BooleanColumn(verbose_name='Active')
     access_method_count = tables.Column(verbose_name='Access Methods', empty_values=())
@@ -46,11 +82,11 @@ class ProtectedResourceTable(BaseTable):
     class Meta(BaseTable.Meta):
         model = ProtectedResource
         fields = (
-            'id', 'name', 'resource_type', 'criticality', 
-            'owner_contact', 'is_active', 'access_method_count', 'grant_count'
+            'id', 'name', 'resource_type', 'criticality', 'business_unit',
+            'site', 'location', 'owner_contact', 'is_active', 'access_method_count', 'grant_count'
         )
         default_columns = (
-            'id', 'name', 'resource_type', 'criticality', 
+            'id', 'name', 'resource_type', 'business_unit', 'criticality', 
             'is_active', 'access_method_count', 'grant_count'
         )
 
@@ -145,6 +181,20 @@ class FortiGatePolicyTable(BaseTable):
         verbose_name='Usage',
         orderable=False
     )
+    groups_count = tables.TemplateColumn(
+        template_code="""
+        {% with count=record.groups_count %}
+            {% if count > 0 %}
+                <span class="badge bg-success">{{ count }} group{{ count|pluralize }}</span>
+            {% else %}
+                <span class="badge bg-secondary">0 groups</span>
+            {% endif %}
+        {% endwith %}
+        """,
+        verbose_name='Groups',
+        orderable=True,
+        accessor='groups_count'
+    )
     ai_description = tables.Column(
         verbose_name='Description', 
         attrs={'td': {'class': 'text-truncate', 'style': 'max-width: 300px;'}},
@@ -156,17 +206,17 @@ class FortiGatePolicyTable(BaseTable):
         fields = (
             'policy_id', 'name', 'action', 'status', 
             'source_interfaces_display', 'destination_interfaces_display', 'services_display',
-            'nat_enabled', 'utm_status', 'usage_count', 'ai_description'
+            'nat_enabled', 'utm_status', 'usage_count', 'groups_count', 'ai_description'
         )
         default_columns = (
             'policy_id', 'name', 'action', 'status', 
-            'usage_count', 'nat_enabled', 'ai_description'
+            'usage_count', 'groups_count', 'nat_enabled', 'ai_description'
         )
 
 
 class AccessGrantTable(BaseTable):
     resource = tables.LinkColumn(
-        'plugins:netbox_azure_groups:protectedresource',
+        'plugins:netbox_access_control:protectedresource',
         args=[tables.A('resource.pk')],
         text=lambda record: record.resource.name
     )
@@ -176,12 +226,12 @@ class AccessGrantTable(BaseTable):
         text=lambda record: record.contact.name
     )
     azure_group = tables.LinkColumn(
-        'plugins:netbox_azure_groups:azuregroup',
+        'plugins:netbox_access_control:azuregroup',
         args=[tables.A('azure_group.pk')],
         text=lambda record: record.azure_group.name
     )
     control_method = tables.LinkColumn(
-        'plugins:netbox_azure_groups:accesscontrolmethod',
+        'plugins:netbox_access_control:accesscontrolmethod',
         args=[tables.A('control_method.pk')],
         text=lambda record: record.control_method.name
     )

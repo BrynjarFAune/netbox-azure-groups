@@ -1,6 +1,6 @@
 from django import forms
 from netbox.forms import NetBoxModelForm, NetBoxModelFilterSetForm
-from .models import AzureGroup, GroupMembership, GroupOwnership
+from .models import AzureGroup, GroupMembership, GroupOwnership, BusinessUnit
 from .models.azure_groups import (
     GroupTypeChoices, GroupSourceChoices, MembershipTypeChoices,
     ProtectedResource, AccessControlMethod, AccessGrant, FortiGatePolicy,
@@ -136,6 +136,54 @@ class GroupOwnershipFilterForm(NetBoxModelFilterSetForm):
     )
 
 
+# Business Unit Forms
+
+class BusinessUnitForm(NetBoxModelForm):
+    """Form for creating and editing Business Units."""
+    
+    class Meta:
+        model = BusinessUnit
+        fields = ['name', 'description', 'parent', 'contact', 'is_active', 'tags']
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 3}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Filter parent choices to exclude self and descendants to prevent loops
+        if self.instance and self.instance.pk:
+            descendants = self._get_descendants(self.instance)
+            self.fields['parent'].queryset = BusinessUnit.objects.exclude(
+                pk__in=[self.instance.pk] + list(descendants.values_list('pk', flat=True))
+            )
+        
+        # Add helpful descriptions
+        self.fields['name'].help_text = 'Unique name for this business unit'
+        self.fields['parent'].help_text = 'Parent business unit (creates hierarchy)'
+        self.fields['contact'].help_text = 'Primary contact for this business unit'
+    
+    def _get_descendants(self, unit):
+        """Get all descendants of a business unit to prevent circular references."""
+        descendants = BusinessUnit.objects.filter(parent=unit)
+        for child in descendants:
+            descendants = descendants | self._get_descendants(child)
+        return descendants
+
+
+class BusinessUnitFilterForm(NetBoxModelFilterSetForm):
+    model = BusinessUnit
+    
+    name = forms.CharField(required=False)
+    parent = forms.ModelChoiceField(
+        queryset=BusinessUnit.objects.all(),
+        required=False,
+        label='Parent Unit'
+    )
+    contact = forms.CharField(required=False, label='Contact Name')
+    is_active = forms.BooleanField(required=False)
+
+
 # Access Control Forms
 
 class ProtectedResourceForm(NetBoxModelForm):
@@ -145,7 +193,7 @@ class ProtectedResourceForm(NetBoxModelForm):
         model = ProtectedResource
         fields = [
             'name', 'description', 'resource_type', 'base_url',
-            'ip_addresses', 'physical_location',
+            'ip_addresses', 'site', 'location', 'physical_location',
             'owner_contact', 'business_unit', 'criticality', 'is_active', 'tags'
         ]
         widgets = {

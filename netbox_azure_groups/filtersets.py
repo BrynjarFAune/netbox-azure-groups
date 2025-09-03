@@ -1,6 +1,6 @@
 import django_filters
 from django_filters import filterset
-from .models import AzureGroup, GroupMembership, GroupOwnership, ProtectedResource, AccessControlMethod, FortiGatePolicy, AccessGrant
+from .models import AzureGroup, GroupMembership, GroupOwnership, ProtectedResource, AccessControlMethod, FortiGatePolicy, AccessGrant, BusinessUnit
 
 
 # Minimal filtersets for migration purposes only
@@ -30,15 +30,34 @@ DeviceGroupMembershipFilterSet = GroupMembershipFilterSet
 ContactGroupOwnershipFilterSet = GroupOwnershipFilterSet
 
 
+class BusinessUnitFilterSet(filterset.FilterSet):
+    name = django_filters.CharFilter(lookup_expr='icontains')
+    parent = django_filters.ModelChoiceFilter(queryset=BusinessUnit.objects.all())
+    contact_name = django_filters.CharFilter(
+        field_name='contact__name', 
+        lookup_expr='icontains',
+        label='Contact Name'
+    )
+    
+    class Meta:
+        model = BusinessUnit
+        fields = ['name', 'parent', 'is_active']
+
+
 class ProtectedResourceFilterSet(filterset.FilterSet):
     name = django_filters.CharFilter(lookup_expr='icontains')
-    business_unit = django_filters.CharFilter(lookup_expr='icontains')
+    business_unit = django_filters.ModelChoiceFilter(queryset=BusinessUnit.objects.all())
+    business_unit_name = django_filters.CharFilter(
+        field_name='business_unit__name', 
+        lookup_expr='icontains',
+        label='Business Unit Name'
+    )
     
     class Meta:
         model = ProtectedResource
         fields = [
             'name', 'resource_type', 'criticality', 
-            'business_unit', 'is_active', 'owner_contact'
+            'site', 'location', 'is_active', 'owner_contact'
         ]
 
 

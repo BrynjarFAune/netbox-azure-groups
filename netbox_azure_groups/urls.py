@@ -1,7 +1,7 @@
 from django.urls import path, include
 from . import views
 
-app_name = 'netbox_azure_groups'
+app_name = 'netbox_access_control'
 
 urlpatterns = [
     # Dashboard
@@ -14,6 +14,14 @@ urlpatterns = [
     path('azure-groups/<int:pk>/', views.AzureGroupView.as_view(), name='azuregroup'),
     path('azure-groups/<int:pk>/delete/', views.AzureGroupDeleteView.as_view(), name='azuregroup_delete'),
     path('azure-groups/<int:pk>/changelog/', views.AzureGroupChangeLogView.as_view(), name='azuregroup_changelog'),
+    
+    # Business Units - Full CRUD
+    path('business-units/', views.BusinessUnitListView.as_view(), name='businessunit_list'),
+    path('business-units/<int:pk>/', views.BusinessUnitView.as_view(), name='businessunit'),
+    path('business-units/add/', views.BusinessUnitEditView.as_view(), name='businessunit_add'),
+    path('business-units/<int:pk>/edit/', views.BusinessUnitEditView.as_view(), name='businessunit_edit'),
+    path('business-units/<int:pk>/delete/', views.BusinessUnitDeleteView.as_view(), name='businessunit_delete'),
+    path('business-units/<int:pk>/changelog/', views.BusinessUnitChangeLogView.as_view(), name='businessunit_changelog'),
     
     # Protected Resources - Full CRUD
     path('protected-resources/', views.ProtectedResourceListView.as_view(), name='protectedresource_list'),

@@ -6,6 +6,8 @@ from .azure_groups import (
     GroupTypeChoices,
     GroupSourceChoices,
     MembershipTypeChoices,
+    # Business Unit Models
+    BusinessUnit,
     # Access Control Extension Models
     ProtectedResource,
     AccessControlMethod,
@@ -34,6 +36,8 @@ __all__ = [
     'GroupTypeChoices',
     'GroupSourceChoices',
     'MembershipTypeChoices',
+    # Business Unit Models
+    'BusinessUnit',
     # Access Control Extension Models
     'ProtectedResource',
     'AccessControlMethod',

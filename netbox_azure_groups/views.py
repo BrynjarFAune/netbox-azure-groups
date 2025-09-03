@@ -1,5 +1,5 @@
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.shortcuts import render
 from django.views.generic import View
 from netbox.views import generic
@@ -43,6 +43,49 @@ class AzureGroupDeleteView(generic.ObjectDeleteView):
 
 class AzureGroupChangeLogView(generic.ObjectChangeLogView):
     queryset = models.AzureGroup.objects.all()
+
+
+# BusinessUnit Views
+
+class BusinessUnitView(generic.ObjectView):
+    queryset = models.BusinessUnit.objects.prefetch_related('tags')
+    
+    def get_extra_context(self, request, instance):
+        # Get child business units
+        child_units = instance.businessunit_set.filter(is_active=True)
+        
+        # Get protected resources using this business unit
+        protected_resources = instance.protected_resources.all()
+        
+        return {
+            'child_units': child_units,
+            'child_units_count': child_units.count(),
+            'protected_resources': protected_resources[:10],  # Show first 10
+            'protected_resources_count': protected_resources.count(),
+        }
+
+
+class BusinessUnitListView(generic.ObjectListView):
+    queryset = models.BusinessUnit.objects.annotate(
+        child_count=Count('businessunit_set'),
+        resource_count=Count('protected_resources')
+    ).select_related('parent', 'contact')
+    table = tables.BusinessUnitTable
+    filterset = filtersets.BusinessUnitFilterSet
+    filterset_form = forms.BusinessUnitFilterForm
+
+
+class BusinessUnitEditView(generic.ObjectEditView):
+    queryset = models.BusinessUnit.objects.all()
+    form = forms.BusinessUnitForm
+
+
+class BusinessUnitDeleteView(generic.ObjectDeleteView):
+    queryset = models.BusinessUnit.objects.all()
+
+
+class BusinessUnitChangeLogView(generic.ObjectChangeLogView):
+    queryset = models.BusinessUnit.objects.all()
 
 
 # ProtectedResource Views
@@ -167,7 +210,13 @@ class FortiGatePolicyView(generic.ObjectView):
 
 
 class FortiGatePolicyListView(generic.ObjectListView):
-    queryset = models.FortiGatePolicy.objects.all()
+    queryset = models.FortiGatePolicy.objects.annotate(
+        groups_count=Count(
+            'access_control_method__azure_group',
+            distinct=True,
+            filter=models.Q(access_control_method__control_type='fortigate_policy')
+        )
+    )
     table = tables.FortiGatePolicyTable
     filterset = filtersets.FortiGatePolicyFilterSet
     filterset_form = forms.FortiGatePolicyFilterForm

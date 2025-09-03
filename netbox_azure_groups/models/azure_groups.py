@@ -8,6 +8,51 @@ from utilities.choices import ChoiceSet
 import uuid
 
 
+class BusinessUnit(NetBoxModel):
+    """Business unit for organizing resources and access control."""
+    
+    name = models.CharField(
+        max_length=100,
+        unique=True,
+        help_text='Business unit name (e.g., "Human Resources", "Finance", "IT")'
+    )
+    description = models.TextField(
+        blank=True,
+        help_text='Business unit description and purpose'
+    )
+    contact = models.ForeignKey(
+        'tenancy.Contact',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='managed_business_units',
+        help_text='Business unit manager/contact'
+    )
+    parent = models.ForeignKey(
+        'self',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='children',
+        help_text='Parent business unit (for hierarchical structure)'
+    )
+    is_active = models.BooleanField(
+        default=True,
+        help_text='Whether this business unit is active'
+    )
+    
+    class Meta:
+        ordering = ['name']
+        verbose_name = 'Business Unit'
+        verbose_name_plural = 'Business Units'
+    
+    def __str__(self):
+        return self.name
+    
+    def get_absolute_url(self):
+        return reverse('plugins:netbox_azure_groups:businessunit', args=[self.pk])
+
+
 class GroupTypeChoices(ChoiceSet):
     SECURITY = 'security'
     MICROSOFT365 = 'microsoft365'
@@ -355,6 +400,22 @@ class ProtectedResource(NetBoxModel):
         blank=True,
         help_text='IP addresses associated with this resource'
     )
+    site = models.ForeignKey(
+        'dcim.Site',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='protected_resources',
+        help_text='NetBox site where this resource is located'
+    )
+    location = models.ForeignKey(
+        'dcim.Location', 
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='protected_resources',
+        help_text='Specific location within the site'
+    )
     physical_location = models.CharField(
         max_length=200,
         blank=True,
@@ -370,9 +431,12 @@ class ProtectedResource(NetBoxModel):
         related_name='owned_resources',
         help_text='Contact responsible for this resource'
     )
-    business_unit = models.CharField(
-        max_length=100,
+    business_unit = models.ForeignKey(
+        BusinessUnit,
+        on_delete=models.SET_NULL,
+        null=True,
         blank=True,
+        related_name='resources',
         help_text='Business unit that owns this resource'
     )
     criticality = models.CharField(
@@ -858,6 +922,20 @@ class FortiGatePolicy(NetBoxModel):
             control_type='fortigate_policy',
             configuration__policy_id=self.policy_id
         ).count()
+    
+    def get_groups_count(self):
+        """Get count of unique Azure groups that have access through this policy"""
+        methods = AccessControlMethod.objects.filter(
+            control_type='fortigate_policy',
+            configuration__policy_id=self.policy_id
+        ).select_related('azure_group')
+        
+        unique_groups = set()
+        for method in methods:
+            if method.azure_group:
+                unique_groups.add(method.azure_group.pk)
+        
+        return len(unique_groups)
     
     def get_absolute_url(self):
         return reverse('plugins:netbox_azure_groups:fortigatepolicy', args=[self.pk])
