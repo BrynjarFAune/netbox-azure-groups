@@ -10,8 +10,8 @@ class AzureGroupsConfig(PluginConfig):
     base_url = 'azure-groups'
     required_settings = []
     
-    # Navigation menu file
-    menu = 'netbox_azure_groups.navigation.menus'
+    # Navigation menu
+    menu = 'navigation.menus'
     
     # Plugin-specific settings
     default_settings = {

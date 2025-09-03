@@ -92,14 +92,58 @@ class FortiGatePolicyTable(BaseTable):
         verbose_name='Policy ID',
         linkify=lambda record: record.get_absolute_url()
     )
-    name = tables.Column(verbose_name='Name')
-    action = ChoiceFieldColumn()
-    status = ChoiceFieldColumn()
+    name = tables.Column(
+        verbose_name='Name',
+        linkify=lambda record: record.get_absolute_url()
+    )
+    action = tables.TemplateColumn(
+        template_code="""
+        {% if record.action == 'accept' %}
+            <span class="badge bg-success">{{ record.get_action_display }}</span>
+        {% elif record.action == 'deny' %}
+            <span class="badge bg-danger">{{ record.get_action_display }}</span>
+        {% else %}
+            <span class="badge bg-info">{{ record.get_action_display }}</span>
+        {% endif %}
+        """,
+        verbose_name='Action'
+    )
+    status = tables.TemplateColumn(
+        template_code="""
+        {% if record.status == 'enable' %}
+            <span class="badge bg-success">{{ record.get_status_display }}</span>
+        {% else %}
+            <span class="badge bg-secondary">{{ record.get_status_display }}</span>
+        {% endif %}
+        """,
+        verbose_name='Status'
+    )
     source_interfaces_display = tables.Column(verbose_name='Source', accessor='source_interfaces_display')
     destination_interfaces_display = tables.Column(verbose_name='Destination', accessor='destination_interfaces_display')
     services_display = tables.Column(verbose_name='Services', accessor='services_display')
     nat_enabled = tables.BooleanColumn(verbose_name='NAT')
-    utm_status = ChoiceFieldColumn(verbose_name='UTM')
+    utm_status = tables.TemplateColumn(
+        template_code="""
+        {% if record.utm_status == 'enable' %}
+            <span class="badge bg-warning">Enabled</span>
+        {% else %}
+            <span class="badge bg-secondary">Disabled</span>
+        {% endif %}
+        """,
+        verbose_name='UTM'
+    )
+    usage_count = tables.TemplateColumn(
+        template_code="""
+        {% if record.access_methods.count > 0 %}
+            <span class="badge bg-primary">{{ record.access_methods.count }}</span>
+        {% else %}
+            <span class="badge bg-secondary">0</span>
+        {% endif %}
+        """,
+        verbose_name='Usage',
+        orderable=True,
+        accessor=tables.A('access_methods.count')
+    )
     ai_description = tables.Column(
         verbose_name='Description', 
         attrs={'td': {'class': 'text-truncate', 'style': 'max-width: 300px;'}},
@@ -111,12 +155,11 @@ class FortiGatePolicyTable(BaseTable):
         fields = (
             'policy_id', 'name', 'action', 'status', 
             'source_interfaces_display', 'destination_interfaces_display', 'services_display',
-            'nat_enabled', 'utm_status', 'ai_description'
+            'nat_enabled', 'utm_status', 'usage_count', 'ai_description'
         )
         default_columns = (
             'policy_id', 'name', 'action', 'status', 
-            'source_interfaces_display', 'destination_interfaces_display', 
-            'nat_enabled', 'ai_description'
+            'usage_count', 'nat_enabled', 'ai_description'
         )
 
 
