@@ -10,11 +10,7 @@
         <h1>{% block pretitle %}{% endblock %}Access Grants</h1>
     </div>
     <div class="col-sm-4 col-md-3 text-end">
-        <div class="btn-group" role="group">
-            {% if request.user.is_authenticated %}
-                {% bookmark_button object_list %}
-            {% endif %}
-        </div>
+        {# Bookmark button removed due to compatibility issues #}
     </div>
 </div>
 {% endblock header %}
@@ -125,51 +121,5 @@
 {% endblock extra_controls %}
 
 {% block table_controls %}
-<!-- Access Grant Statistics -->
-<div class="row mb-3">
-    <div class="col-12">
-        <div class="row text-center">
-            <div class="col-md-2">
-                <div class="card">
-                    <div class="card-body py-2">
-                        <h6 class="mb-1">Total Grants</h6>
-                        <h4 class="text-primary mb-0">{{ stats.total_grants|default:0 }}</h4>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-2">
-                <div class="card">
-                    <div class="card-body py-2">
-                        <h6 class="mb-1">Active</h6>
-                        <h4 class="text-success mb-0">{{ stats.active_grants|default:0 }}</h4>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-2">
-                <div class="card">
-                    <div class="card-body py-2">
-                        <h6 class="mb-1">Inactive</h6>
-                        <h4 class="text-danger mb-0">{{ stats.inactive_grants|default:0 }}</h4>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card">
-                    <div class="card-body py-2">
-                        <h6 class="mb-1">Direct Membership</h6>
-                        <h4 class="text-info mb-0">{{ stats.direct_grants|default:0 }}</h4>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card">
-                    <div class="card-body py-2">
-                        <h6 class="mb-1">Nested Groups</h6>
-                        <h4 class="text-warning mb-0">{{ stats.nested_grants|default:0 }}</h4>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+{# Statistics removed temporarily due to queryset issues #}
 {% endblock table_controls %}

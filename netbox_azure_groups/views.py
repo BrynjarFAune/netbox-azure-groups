@@ -218,22 +218,6 @@ class AccessGrantListView(generic.ObjectListView):
     filterset = filtersets.AccessGrantFilterSet
     filterset_form = forms.AccessGrantFilterForm
     template_name = 'netbox_azure_groups/accessgrant_list.html'
-    
-    def get_extra_context(self, request):
-        # Get some statistics for the list view
-        queryset = self.get_queryset()
-        if hasattr(self, 'filterset') and self.filterset:
-            queryset = self.filterset.qs
-        
-        stats = {
-            'total_grants': queryset.count(),
-            'active_grants': queryset.filter(is_active=True).count(),
-            'inactive_grants': queryset.filter(is_active=False).count(),
-            'direct_grants': queryset.filter(granted_via='direct_membership').count(),
-            'nested_grants': queryset.filter(granted_via='nested_group').count(),
-        }
-        
-        return {'stats': stats}
 
 
 class AccessGrantEditView(generic.ObjectEditView):
