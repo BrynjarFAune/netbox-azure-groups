@@ -10,6 +10,7 @@ router.register('group-memberships', viewsets.GroupMembershipViewSet)
 router.register('group-ownerships', viewsets.GroupOwnershipViewSet)
 
 # Access Control (new)
+router.register('business-units', viewsets.BusinessUnitViewSet)
 router.register('protected-resources', viewsets.ProtectedResourceViewSet)
 router.register('access-control-methods', viewsets.AccessControlMethodViewSet)
 router.register('access-grants', viewsets.AccessGrantViewSet)

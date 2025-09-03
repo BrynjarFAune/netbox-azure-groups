@@ -6,13 +6,13 @@ from netbox.api.viewsets import NetBoxModelViewSet
 from ..models import (
     AzureGroup, GroupMembership, GroupOwnership,
     ProtectedResource, AccessControlMethod, AccessGrant,
-    FortiGatePolicy
+    FortiGatePolicy, BusinessUnit
 )
 from ..models.azure_groups import GroupTypeChoices, GroupSourceChoices
 from .serializers import (
     AzureGroupSerializer, GroupMembershipSerializer, GroupOwnershipSerializer,
     ProtectedResourceSerializer, AccessControlMethodSerializer, AccessGrantSerializer,
-    FortiGatePolicySerializer
+    FortiGatePolicySerializer, BusinessUnitSerializer
 )
 
 
@@ -94,6 +94,51 @@ class GroupOwnershipViewSet(NetBoxModelViewSet):
 
 
 # Access Control ViewSets
+
+class BusinessUnitViewSet(NetBoxModelViewSet):
+    queryset = BusinessUnit.objects.all()
+    serializer_class = BusinessUnitSerializer
+    filterset_fields = ['name', 'parent', 'contact', 'is_active']
+
+    @action(detail=True, methods=['get'], url_path='children')
+    def children(self, request, pk=None):
+        """List child business units."""
+        unit = self.get_object()
+        children = BusinessUnit.objects.filter(parent=unit, is_active=True)
+        
+        return Response({
+            'parent': unit.name,
+            'children': [
+                {
+                    'id': child.id,
+                    'name': child.name,
+                    'description': child.description,
+                    'contact': child.contact.name if child.contact else None
+                }
+                for child in children
+            ]
+        })
+
+    @action(detail=True, methods=['get'], url_path='resources')
+    def resources(self, request, pk=None):
+        """List protected resources for this business unit."""
+        unit = self.get_object()
+        resources = ProtectedResource.objects.filter(business_unit=unit)
+        
+        return Response({
+            'business_unit': unit.name,
+            'protected_resources': [
+                {
+                    'id': resource.id,
+                    'name': resource.name,
+                    'resource_type': resource.get_resource_type_display(),
+                    'criticality': resource.get_criticality_display(),
+                    'is_active': resource.is_active
+                }
+                for resource in resources
+            ]
+        })
+
 
 class ProtectedResourceViewSet(NetBoxModelViewSet):
     queryset = ProtectedResource.objects.all()

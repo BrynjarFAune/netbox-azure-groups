@@ -135,11 +135,11 @@ class FortiGatePolicyTable(BaseTable):
     action = tables.TemplateColumn(
         template_code="""
         {% if record.action == 'accept' %}
-            <span class="badge bg-success text-white fw-bold px-3">✓ {{ record.get_action_display|upper }}</span>
+            <span class="badge bg-success">{{ record.get_action_display }}</span>
         {% elif record.action == 'deny' %}
-            <span class="badge bg-danger text-white fw-bold px-3">✗ {{ record.get_action_display|upper }}</span>
+            <span class="badge bg-danger">{{ record.get_action_display }}</span>
         {% else %}
-            <span class="badge bg-warning text-dark fw-bold px-3">{{ record.get_action_display|upper }}</span>
+            <span class="badge bg-warning text-dark">{{ record.get_action_display }}</span>
         {% endif %}
         """,
         verbose_name='Action'
@@ -147,9 +147,9 @@ class FortiGatePolicyTable(BaseTable):
     status = tables.TemplateColumn(
         template_code="""
         {% if record.status == 'enable' %}
-            <span class="badge bg-success text-white fw-bold px-3">● {{ record.get_status_display|upper }}</span>
+            <span class="badge bg-success">{{ record.get_status_display }}</span>
         {% else %}
-            <span class="badge bg-secondary text-white fw-bold px-3">○ {{ record.get_status_display|upper }}</span>
+            <span class="badge bg-secondary">{{ record.get_status_display }}</span>
         {% endif %}
         """,
         verbose_name='Status'
@@ -161,9 +161,9 @@ class FortiGatePolicyTable(BaseTable):
     utm_status = tables.TemplateColumn(
         template_code="""
         {% if record.utm_status == 'enable' %}
-            <span class="badge bg-warning text-dark fw-bold px-3">🛡️ UTM</span>
+            <span class="badge bg-warning text-dark">UTM</span>
         {% else %}
-            <span class="badge bg-light text-muted fw-bold px-3">—</span>
+            <span class="badge bg-secondary">Disabled</span>
         {% endif %}
         """,
         verbose_name='UTM'
@@ -172,9 +172,9 @@ class FortiGatePolicyTable(BaseTable):
         template_code="""
         {% with count=record.get_usage_count %}
             {% if count > 0 %}
-                <span class="badge bg-primary text-white fw-bold px-3" title="{{ count }} usage{{ count|pluralize }}">{{ count }}</span>
+                <span class="badge bg-primary" title="Referenced by {{ count }} access control method{{ count|pluralize }}">{{ count }}</span>
             {% else %}
-                <span class="badge bg-light text-muted fw-bold px-3" title="No usage">—</span>
+                <span class="badge bg-secondary" title="Not used by any access control methods">0</span>
             {% endif %}
         {% endwith %}
         """,
@@ -185,9 +185,9 @@ class FortiGatePolicyTable(BaseTable):
         template_code="""
         {% with count=record.groups_count %}
             {% if count > 0 %}
-                <span class="badge bg-info text-white fw-bold px-3" title="{{ count }} Azure group{{ count|pluralize }}">👥 {{ count }}</span>
+                <span class="badge bg-info" title="{{ count }} Azure group{{ count|pluralize }} use this policy">{{ count }}</span>
             {% else %}
-                <span class="badge bg-light text-muted fw-bold px-3" title="No Azure groups">—</span>
+                <span class="badge bg-secondary" title="No Azure groups use this policy">0</span>
             {% endif %}
         {% endwith %}
         """,
