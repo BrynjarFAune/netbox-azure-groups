@@ -1,6 +1,6 @@
 import django_filters
 from django_filters import filterset
-from .models import AzureGroup, GroupMembership, GroupOwnership, ProtectedResource, AccessControlMethod, FortiGatePolicy, AccessGrant, BusinessUnit
+from .models import AzureGroup, GroupMembership, GroupOwnership, ProtectedResource, AccessControlMethod, FortiGatePolicy, AccessGrant, BusinessUnit, BusinessUnitMembership
 
 
 # Minimal filtersets for migration purposes only
@@ -42,6 +42,38 @@ class BusinessUnitFilterSet(filterset.FilterSet):
     class Meta:
         model = BusinessUnit
         fields = ['name', 'parent', 'is_active']
+
+
+class BusinessUnitMembershipFilterSet(filterset.FilterSet):
+    business_unit = django_filters.ModelChoiceFilter(queryset=BusinessUnit.objects.all())
+    contact_name = django_filters.CharFilter(
+        field_name='contact__name',
+        lookup_expr='icontains', 
+        label='Contact Name'
+    )
+    role = django_filters.MultipleChoiceFilter(
+        choices=[
+            ('member', 'Member'),
+            ('manager', 'Manager'),
+            ('admin', 'Administrator'),
+            ('contributor', 'Contributor'),
+            ('viewer', 'Viewer'),
+        ]
+    )
+    start_date_after = django_filters.DateFilter(
+        field_name='start_date',
+        lookup_expr='gte',
+        label='Start Date After'
+    )
+    start_date_before = django_filters.DateFilter(
+        field_name='start_date',
+        lookup_expr='lte',
+        label='Start Date Before'
+    )
+    
+    class Meta:
+        model = BusinessUnitMembership
+        fields = ['business_unit', 'role', 'is_active']
 
 
 class ProtectedResourceFilterSet(filterset.FilterSet):

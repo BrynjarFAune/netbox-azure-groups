@@ -1,0 +1,388 @@
+{% extends 'generic/object.html' %}
+{% load buttons %}
+{% load custom_links %}
+{% load helpers %}
+{% load tabs %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col col-md-6">
+        <div class="card">
+            <h5 class="card-header">Business Unit Details</h5>
+            <div class="card-body">
+                <table class="table table-hover attr-table">
+                    <tr>
+                        <th scope="row">Name</th>
+                        <td>{{ object.name }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Description</th>
+                        <td>{{ object.description|placeholder }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Contact/Manager</th>
+                        <td>
+                            {% if object.contact %}
+                                <a href="{{ object.contact.get_absolute_url }}">{{ object.contact }}</a>
+                            {% else %}
+                                {{ ''|placeholder }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Parent Unit</th>
+                        <td>
+                            {% if object.parent %}
+                                <a href="{{ object.parent.get_absolute_url }}">{{ object.parent.name }}</a>
+                            {% else %}
+                                <span class="badge bg-info">Root Unit</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Status</th>
+                        <td>
+                            {% if object.is_active %}
+                                <span class="badge bg-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Inactive</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col col-md-6">
+        <div class="card">
+            <h5 class="card-header">Statistics</h5>
+            <div class="card-body">
+                <table class="table table-hover attr-table">
+                    <tr>
+                        <th scope="row">Child Units</th>
+                        <td>
+                            <span class="badge bg-primary">{{ child_units_count }}</span>
+                            {% if child_units_count > 0 %}
+                                child unit{{ child_units_count|pluralize }}
+                            {% else %}
+                                no child units
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Protected Resources</th>
+                        <td>
+                            <span class="badge bg-info">{{ protected_resources_count }}</span>
+                            {% if protected_resources_count > 0 %}
+                                protected resource{{ protected_resources_count|pluralize }}
+                            {% else %}
+                                no protected resources
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Access Control Methods</th>
+                        <td>
+                            <span class="badge bg-warning text-dark">{{ access_methods_count|default:0 }}</span>
+                            access method{{ access_methods_count|default:0|pluralize }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Active Access Grants</th>
+                        <td>
+                            <span class="badge bg-success">{{ access_grants_count|default:0 }}</span>
+                            active grant{{ access_grants_count|default:0|pluralize }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Team Members</th>
+                        <td>
+                            <span class="badge bg-primary">{{ memberships_count|default:0 }}</span>
+                            member{{ memberships_count|default:0|pluralize }}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hierarchical Structure -->
+{% if object.parent or child_units %}
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="card">
+            <h5 class="card-header">
+                <i class="mdi mdi-sitemap"></i> Organizational Hierarchy
+            </h5>
+            <div class="card-body">
+                {% if object.parent %}
+                <div class="mb-3">
+                    <h6>Parent Unit</h6>
+                    <div class="ms-3">
+                        <i class="mdi mdi-chevron-up text-muted"></i>
+                        <a href="{{ object.parent.get_absolute_url }}" class="btn btn-outline-primary btn-sm">
+                            {{ object.parent.name }}
+                        </a>
+                        {% if object.parent.contact %}
+                            <small class="text-muted ms-2">
+                                Managed by: <a href="{{ object.parent.contact.get_absolute_url }}">{{ object.parent.contact.name }}</a>
+                            </small>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="mb-3">
+                    <h6>
+                        <strong>{{ object.name }}</strong>
+                        <span class="badge bg-primary ms-2">Current</span>
+                    </h6>
+                </div>
+                
+                {% if child_units %}
+                <div>
+                    <h6>Child Units ({{ child_units_count }})</h6>
+                    <div class="ms-3">
+                        {% for child in child_units %}
+                        <div class="mb-2">
+                            <i class="mdi mdi-chevron-down text-muted"></i>
+                            <a href="{{ child.get_absolute_url }}" class="btn btn-outline-secondary btn-sm">
+                                {{ child.name }}
+                            </a>
+                            {% if child.contact %}
+                                <small class="text-muted ms-2">
+                                    Managed by: <a href="{{ child.contact.get_absolute_url }}">{{ child.contact.name }}</a>
+                                </small>
+                            {% endif %}
+                            {% if not child.is_active %}
+                                <span class="badge bg-secondary ms-2">Inactive</span>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Quick Actions -->
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="card">
+            <h5 class="card-header">
+                <i class="mdi mdi-lightning-bolt"></i> Quick Actions
+            </h5>
+            <div class="card-body">
+                <div class="btn-group me-2" role="group">
+                    <a href="{% url 'plugins:netbox_azure_groups:businessunit_add' %}?parent={{ object.pk }}" class="btn btn-success">
+                        <i class="mdi mdi-plus"></i> Add Child Unit
+                    </a>
+                    <a href="{% url 'plugins:netbox_azure_groups:protectedresource_add' %}?business_unit={{ object.pk }}" class="btn btn-info">
+                        <i class="mdi mdi-shield-plus"></i> Add Protected Resource
+                    </a>
+                    <a href="{% url 'plugins:netbox_azure_groups:businessunitmembership_add' %}?business_unit={{ object.pk }}" class="btn btn-success">
+                        <i class="mdi mdi-account-plus"></i> Add Member
+                    </a>
+                </div>
+                <div class="btn-group" role="group">
+                    <a href="{% url 'plugins:netbox_azure_groups:protectedresource_list' %}?business_unit={{ object.pk }}" class="btn btn-outline-primary">
+                        <i class="mdi mdi-eye"></i> View All Resources
+                    </a>
+                    <a href="{% url 'plugins:netbox_azure_groups:accessgrant_list' %}?resource__business_unit={{ object.pk }}" class="btn btn-outline-success">
+                        <i class="mdi mdi-key"></i> View Access Grants
+                    </a>
+                    <a href="{% url 'plugins:netbox_azure_groups:businessunitmembership_list' %}?business_unit={{ object.pk }}" class="btn btn-outline-info">
+                        <i class="mdi mdi-account-group"></i> View Members
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Protected Resources -->
+{% if protected_resources %}
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="card">
+            <h5 class="card-header">
+                <i class="mdi mdi-shield-check"></i> Protected Resources
+                <span class="badge bg-info ms-2">{{ protected_resources_count }}</span>
+            </h5>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Type</th>
+                                <th>Criticality</th>
+                                <th>Status</th>
+                                <th>Access Methods</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for resource in protected_resources %}
+                            <tr>
+                                <td>
+                                    <a href="{{ resource.get_absolute_url }}">{{ resource.name }}</a>
+                                    {% if resource.description %}
+                                        <br><small class="text-muted">{{ resource.description|truncatewords:10 }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ resource.get_resource_type_display }}</span>
+                                </td>
+                                <td>
+                                    {% if resource.criticality == 'critical' %}
+                                        <span class="badge bg-danger">{{ resource.get_criticality_display }}</span>
+                                    {% elif resource.criticality == 'high' %}
+                                        <span class="badge bg-warning text-dark">{{ resource.get_criticality_display }}</span>
+                                    {% else %}
+                                        <span class="badge bg-info">{{ resource.get_criticality_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if resource.is_active %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary">{{ resource.access_methods.count }}</span>
+                                    method{{ resource.access_methods.count|pluralize }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% if protected_resources_count > 10 %}
+                <div class="mt-3">
+                    <a href="{% url 'plugins:netbox_azure_groups:protectedresource_list' %}?business_unit={{ object.pk }}" class="btn btn-outline-primary">
+                        View All {{ protected_resources_count }} Resources →
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Azure Groups Integration -->
+{% if related_azure_groups %}
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="card">
+            <h5 class="card-header">
+                <i class="mdi mdi-microsoft-azure"></i> Related Azure Groups
+                <span class="badge bg-primary ms-2">{{ related_azure_groups.count }}</span>
+            </h5>
+            <div class="card-body">
+                <p class="text-muted mb-3">Azure AD groups that provide access to resources in this business unit.</p>
+                <div class="row">
+                    {% for group in related_azure_groups %}
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <div class="card border-primary">
+                            <div class="card-body">
+                                <h6 class="card-title">
+                                    <a href="{{ group.get_absolute_url }}">{{ group.name }}</a>
+                                </h6>
+                                <p class="card-text">
+                                    <small class="text-muted">{{ group.description|truncatewords:8|default:"No description" }}</small>
+                                </p>
+                                <div class="mt-2">
+                                    <span class="badge bg-secondary">{{ group.get_group_type_display }}</span>
+                                    <span class="badge bg-info">{{ group.member_count }} member{{ group.member_count|pluralize }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Team Members -->
+{% if memberships %}
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="card">
+            <h5 class="card-header">
+                <i class="mdi mdi-account-group"></i> Team Members
+                <span class="badge bg-primary ms-2">{{ memberships_count }}</span>
+            </h5>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Contact</th>
+                                <th>Role</th>
+                                <th>Start Date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for membership in memberships %}
+                            <tr>
+                                <td>
+                                    <a href="{{ membership.contact.get_absolute_url }}">{{ membership.contact.name }}</a>
+                                    {% if membership.contact.email %}
+                                        <br><small class="text-muted">{{ membership.contact.email }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if membership.role == 'admin' %}
+                                        <span class="badge bg-danger">{{ membership.get_role_display }}</span>
+                                    {% elif membership.role == 'manager' %}
+                                        <span class="badge bg-warning text-dark">{{ membership.get_role_display }}</span>
+                                    {% elif membership.role == 'contributor' %}
+                                        <span class="badge bg-info">{{ membership.get_role_display }}</span>
+                                    {% elif membership.role == 'viewer' %}
+                                        <span class="badge bg-secondary">{{ membership.get_role_display }}</span>
+                                    {% else %}
+                                        <span class="badge bg-primary">{{ membership.get_role_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if membership.start_date %}
+                                        {{ membership.start_date|date:"Y-m-d" }}
+                                    {% else %}
+                                        <span class="text-muted">Not specified</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if membership.is_active %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Inactive</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% if memberships_count > 20 %}
+                <div class="mt-3">
+                    <a href="{% url 'plugins:netbox_azure_groups:businessunitmembership_list' %}?business_unit={{ object.pk }}" class="btn btn-outline-primary">
+                        View All {{ memberships_count }} Members →
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock content %}

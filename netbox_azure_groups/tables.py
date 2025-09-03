@@ -1,6 +1,6 @@
 import django_tables2 as tables
 from netbox.tables import BaseTable, ChoiceFieldColumn
-from .models import AzureGroup, ProtectedResource, AccessControlMethod, FortiGatePolicy, AccessGrant, BusinessUnit
+from .models import AzureGroup, ProtectedResource, AccessControlMethod, FortiGatePolicy, AccessGrant, BusinessUnit, BusinessUnitMembership
 
 
 class AzureGroupTable(BaseTable):
@@ -52,6 +52,27 @@ class BusinessUnitTable(BaseTable):
         model = BusinessUnit
         fields = ('id', 'name', 'parent', 'contact', 'child_count', 'resource_count', 'is_active')
         default_columns = ('id', 'name', 'parent', 'contact', 'child_count', 'resource_count', 'is_active')
+
+
+class BusinessUnitMembershipTable(BaseTable):
+    id = tables.Column(verbose_name='ID')
+    business_unit = tables.Column(
+        verbose_name='Business Unit',
+        linkify=lambda record: record.business_unit.get_absolute_url()
+    )
+    contact = tables.Column(
+        verbose_name='Contact',
+        linkify=lambda record: record.contact.get_absolute_url() if record.contact else None
+    )
+    role = ChoiceFieldColumn(verbose_name='Role')
+    start_date = tables.DateColumn(verbose_name='Start Date', format='Y-m-d')
+    end_date = tables.DateColumn(verbose_name='End Date', format='Y-m-d')
+    is_active = tables.BooleanColumn(verbose_name='Active')
+
+    class Meta(BaseTable.Meta):
+        model = BusinessUnitMembership
+        fields = ('id', 'business_unit', 'contact', 'role', 'start_date', 'end_date', 'is_active')
+        default_columns = ('id', 'business_unit', 'contact', 'role', 'start_date', 'is_active')
 
 
 class ProtectedResourceTable(BaseTable):

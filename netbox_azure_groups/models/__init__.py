@@ -8,6 +8,8 @@ from .azure_groups import (
     MembershipTypeChoices,
     # Business Unit Models
     BusinessUnit,
+    BusinessUnitMembership,
+    BusinessUnitRoleChoices,
     # Access Control Extension Models
     ProtectedResource,
     AccessControlMethod,
@@ -38,6 +40,8 @@ __all__ = [
     'MembershipTypeChoices',
     # Business Unit Models
     'BusinessUnit',
+    'BusinessUnitMembership',
+    'BusinessUnitRoleChoices',
     # Access Control Extension Models
     'ProtectedResource',
     'AccessControlMethod',

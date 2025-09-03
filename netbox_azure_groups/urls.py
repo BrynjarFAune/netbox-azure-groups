@@ -23,6 +23,14 @@ urlpatterns = [
     path('business-units/<int:pk>/delete/', views.BusinessUnitDeleteView.as_view(), name='businessunit_delete'),
     path('business-units/<int:pk>/changelog/', views.BusinessUnitChangeLogView.as_view(), name='businessunit_changelog'),
     
+    # Business Unit Memberships - Full CRUD
+    path('business-unit-memberships/', views.BusinessUnitMembershipListView.as_view(), name='businessunitmembership_list'),
+    path('business-unit-memberships/<int:pk>/', views.BusinessUnitMembershipView.as_view(), name='businessunitmembership'),
+    path('business-unit-memberships/add/', views.BusinessUnitMembershipEditView.as_view(), name='businessunitmembership_add'),
+    path('business-unit-memberships/<int:pk>/edit/', views.BusinessUnitMembershipEditView.as_view(), name='businessunitmembership_edit'),
+    path('business-unit-memberships/<int:pk>/delete/', views.BusinessUnitMembershipDeleteView.as_view(), name='businessunitmembership_delete'),
+    path('business-unit-memberships/<int:pk>/changelog/', views.BusinessUnitMembershipChangeLogView.as_view(), name='businessunitmembership_changelog'),
+    
     # Protected Resources - Full CRUD
     path('protected-resources/', views.ProtectedResourceListView.as_view(), name='protectedresource_list'),
     path('protected-resources/<int:pk>/', views.ProtectedResourceView.as_view(), name='protectedresource'),

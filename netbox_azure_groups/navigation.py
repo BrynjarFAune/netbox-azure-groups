@@ -33,6 +33,14 @@ access_grant_buttons = (
     ),
 )
 
+membership_buttons = (
+    PluginMenuButton(
+        link='plugins:netbox_azure_groups:businessunitmembership_add',
+        title='Add Membership',
+        icon_class='mdi mdi-plus-thick'
+    ),
+)
+
 # Create the menu with proper navigation structure
 menu = PluginMenu(
     label='Access Control',
@@ -55,6 +63,11 @@ menu = PluginMenu(
                 link='plugins:netbox_azure_groups:businessunit_list',
                 link_text='Business Units',
                 buttons=business_unit_buttons
+            ),
+            PluginMenuItem(
+                link='plugins:netbox_azure_groups:businessunitmembership_list',
+                link_text='Team Memberships',
+                buttons=membership_buttons
             ),
             PluginMenuItem(
                 link='plugins:netbox_azure_groups:protectedresource_list',

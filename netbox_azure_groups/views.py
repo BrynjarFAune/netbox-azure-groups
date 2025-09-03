@@ -57,11 +57,39 @@ class BusinessUnitView(generic.ObjectView):
         # Get protected resources using this business unit
         protected_resources = instance.resources.all()
         
+        # Get access control methods for resources in this business unit
+        access_methods = models.AccessControlMethod.objects.filter(
+            resource__business_unit=instance,
+            is_active=True
+        ).select_related('azure_group', 'resource')
+        
+        # Get active access grants for resources in this business unit
+        access_grants = models.AccessGrant.objects.filter(
+            resource__business_unit=instance,
+            is_active=True
+        ).select_related('contact', 'azure_group', 'resource')
+        
+        # Get Azure groups that provide access to resources in this business unit
+        related_azure_groups = models.AzureGroup.objects.filter(
+            access_methods__resource__business_unit=instance
+        ).distinct()
+        
+        # Get business unit memberships
+        memberships = models.BusinessUnitMembership.objects.filter(
+            business_unit=instance,
+            is_active=True
+        ).select_related('contact').order_by('role', 'contact__name')
+        
         return {
             'child_units': child_units,
             'child_units_count': child_units.count(),
-            'protected_resources': protected_resources[:10],  # Show first 10
+            'protected_resources': protected_resources[:10],  # Show first 10 in template
             'protected_resources_count': protected_resources.count(),
+            'access_methods_count': access_methods.count(),
+            'access_grants_count': access_grants.count(),
+            'related_azure_groups': related_azure_groups[:12],  # Show first 12 in template
+            'memberships': memberships[:20],  # Show first 20 members
+            'memberships_count': memberships.count(),
         }
 
 
@@ -86,6 +114,32 @@ class BusinessUnitDeleteView(generic.ObjectDeleteView):
 
 class BusinessUnitChangeLogView(generic.ObjectChangeLogView):
     queryset = models.BusinessUnit.objects.all()
+
+
+# BusinessUnitMembership Views
+
+class BusinessUnitMembershipView(generic.ObjectView):
+    queryset = models.BusinessUnitMembership.objects.select_related('business_unit', 'contact')
+
+
+class BusinessUnitMembershipListView(generic.ObjectListView):
+    queryset = models.BusinessUnitMembership.objects.select_related('business_unit', 'contact')
+    table = tables.BusinessUnitMembershipTable
+    filterset = filtersets.BusinessUnitMembershipFilterSet
+    filterset_form = forms.BusinessUnitMembershipFilterForm
+
+
+class BusinessUnitMembershipEditView(generic.ObjectEditView):
+    queryset = models.BusinessUnitMembership.objects.all()
+    form = forms.BusinessUnitMembershipForm
+
+
+class BusinessUnitMembershipDeleteView(generic.ObjectDeleteView):
+    queryset = models.BusinessUnitMembership.objects.all()
+
+
+class BusinessUnitMembershipChangeLogView(generic.ObjectChangeLogView):
+    queryset = models.BusinessUnitMembership.objects.all()
 
 
 # ProtectedResource Views

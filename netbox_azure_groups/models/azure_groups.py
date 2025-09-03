@@ -53,6 +53,77 @@ class BusinessUnit(NetBoxModel):
         return reverse('plugins:netbox_azure_groups:businessunit', args=[self.pk])
 
 
+class BusinessUnitRoleChoices(ChoiceSet):
+    MEMBER = 'member'
+    MANAGER = 'manager'
+    ADMIN = 'admin'
+    CONTRIBUTOR = 'contributor'
+    VIEWER = 'viewer'
+    
+    CHOICES = [
+        (MEMBER, 'Member'),
+        (MANAGER, 'Manager'),
+        (ADMIN, 'Administrator'),
+        (CONTRIBUTOR, 'Contributor'),
+        (VIEWER, 'Viewer'),
+    ]
+
+
+class BusinessUnitMembership(NetBoxModel):
+    """Membership relationship between contacts and business units."""
+    
+    business_unit = models.ForeignKey(
+        BusinessUnit,
+        on_delete=models.CASCADE,
+        related_name='memberships'
+    )
+    contact = models.ForeignKey(
+        'tenancy.Contact',
+        on_delete=models.CASCADE,
+        related_name='business_unit_memberships'
+    )
+    role = models.CharField(
+        max_length=20,
+        choices=BusinessUnitRoleChoices,
+        default=BusinessUnitRoleChoices.MEMBER,
+        help_text='Role of the contact within this business unit'
+    )
+    start_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text='When membership started'
+    )
+    end_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text='When membership ends/ended'
+    )
+    is_active = models.BooleanField(
+        default=True,
+        help_text='Whether membership is currently active'
+    )
+    notes = models.TextField(
+        blank=True,
+        help_text='Notes about this membership'
+    )
+    
+    class Meta:
+        ordering = ['business_unit', 'role', 'contact']
+        unique_together = [['business_unit', 'contact']]
+        verbose_name = 'Business Unit Membership'
+        verbose_name_plural = 'Business Unit Memberships'
+        indexes = [
+            models.Index(fields=['business_unit', 'is_active']),
+            models.Index(fields=['contact', 'is_active']),
+        ]
+    
+    def __str__(self):
+        return f'{self.contact.name} - {self.business_unit.name} ({self.get_role_display()})'
+    
+    def get_absolute_url(self):
+        return self.business_unit.get_absolute_url()
+
+
 class GroupTypeChoices(ChoiceSet):
     SECURITY = 'security'
     MICROSOFT365 = 'microsoft365'

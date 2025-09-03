@@ -1,8 +1,8 @@
 from django import forms
 from netbox.forms import NetBoxModelForm, NetBoxModelFilterSetForm
-from .models import AzureGroup, GroupMembership, GroupOwnership, BusinessUnit
+from .models import AzureGroup, GroupMembership, GroupOwnership, BusinessUnit, BusinessUnitMembership
 from .models.azure_groups import (
-    GroupTypeChoices, GroupSourceChoices, MembershipTypeChoices,
+    GroupTypeChoices, GroupSourceChoices, MembershipTypeChoices, BusinessUnitRoleChoices,
     ProtectedResource, AccessControlMethod, AccessGrant, FortiGatePolicy,
     ResourceTypeChoices, CriticalityChoices, ControlTypeChoices, AccessLevelChoices
 )
@@ -182,6 +182,62 @@ class BusinessUnitFilterForm(NetBoxModelFilterSetForm):
     )
     contact = forms.CharField(required=False, label='Contact Name')
     is_active = forms.BooleanField(required=False)
+
+
+class BusinessUnitMembershipForm(NetBoxModelForm):
+    """Form for creating and editing Business Unit Memberships."""
+    
+    class Meta:
+        model = BusinessUnitMembership
+        fields = ['business_unit', 'contact', 'role', 'start_date', 'end_date', 'is_active', 'notes', 'tags']
+        widgets = {
+            'start_date': forms.DateInput(attrs={'type': 'date'}),
+            'end_date': forms.DateInput(attrs={'type': 'date'}),
+            'notes': forms.Textarea(attrs={'rows': 3}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Add helpful descriptions
+        self.fields['business_unit'].help_text = 'Business unit for this membership'
+        self.fields['contact'].help_text = 'Contact who is a member of this business unit'
+        self.fields['role'].help_text = 'Role of the contact within this business unit'
+        self.fields['start_date'].help_text = 'When this membership started (optional)'
+        self.fields['end_date'].help_text = 'When this membership ends/ended (optional)'
+        self.fields['notes'].help_text = 'Additional notes about this membership'
+        
+        # If we have a business_unit from URL params, set it as initial
+        if 'initial' in kwargs and 'business_unit' in kwargs['initial']:
+            self.fields['business_unit'].initial = kwargs['initial']['business_unit']
+
+
+class BusinessUnitMembershipFilterForm(NetBoxModelFilterSetForm):
+    model = BusinessUnitMembership
+    
+    business_unit = forms.ModelChoiceField(
+        queryset=BusinessUnit.objects.all(),
+        required=False,
+        label='Business Unit'
+    )
+    contact = forms.CharField(required=False, label='Contact Name')
+    role = forms.MultipleChoiceField(
+        choices=BusinessUnitRoleChoices.CHOICES,
+        required=False
+    )
+    is_active = forms.BooleanField(required=False)
+    
+    # Date range filters
+    start_date_after = forms.DateField(
+        required=False,
+        label='Start Date After',
+        widget=forms.DateInput(attrs={'type': 'date'})
+    )
+    start_date_before = forms.DateField(
+        required=False,
+        label='Start Date Before',
+        widget=forms.DateInput(attrs={'type': 'date'})
+    )
 
 
 # Access Control Forms

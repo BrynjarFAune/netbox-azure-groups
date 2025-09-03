@@ -6,13 +6,13 @@ from netbox.api.viewsets import NetBoxModelViewSet
 from ..models import (
     AzureGroup, GroupMembership, GroupOwnership,
     ProtectedResource, AccessControlMethod, AccessGrant,
-    FortiGatePolicy, BusinessUnit
+    FortiGatePolicy, BusinessUnit, BusinessUnitMembership
 )
 from ..models.azure_groups import GroupTypeChoices, GroupSourceChoices
 from .serializers import (
     AzureGroupSerializer, GroupMembershipSerializer, GroupOwnershipSerializer,
     ProtectedResourceSerializer, AccessControlMethodSerializer, AccessGrantSerializer,
-    FortiGatePolicySerializer, BusinessUnitSerializer
+    FortiGatePolicySerializer, BusinessUnitSerializer, BusinessUnitMembershipSerializer
 )
 
 
@@ -136,6 +136,37 @@ class BusinessUnitViewSet(NetBoxModelViewSet):
                     'is_active': resource.is_active
                 }
                 for resource in resources
+            ]
+        })
+
+
+class BusinessUnitMembershipViewSet(NetBoxModelViewSet):
+    queryset = BusinessUnitMembership.objects.all()
+    serializer_class = BusinessUnitMembershipSerializer
+    filterset_fields = ['business_unit', 'contact', 'role', 'is_active']
+
+    @action(detail=False, methods=['get'], url_path='by-business-unit')
+    def by_business_unit(self, request):
+        """List memberships grouped by business unit."""
+        business_unit_id = request.query_params.get('business_unit_id')
+        if not business_unit_id:
+            return Response({'error': 'business_unit_id parameter required'}, status=400)
+        
+        memberships = BusinessUnitMembership.objects.filter(
+            business_unit_id=business_unit_id,
+            is_active=True
+        ).select_related('contact', 'business_unit')
+        
+        return Response({
+            'business_unit_id': business_unit_id,
+            'members': [
+                {
+                    'contact': membership.contact.name if membership.contact else None,
+                    'role': membership.get_role_display(),
+                    'start_date': membership.start_date,
+                    'is_active': membership.is_active
+                }
+                for membership in memberships
             ]
         })
 

@@ -3,7 +3,7 @@ from netbox.api.serializers import NetBoxModelSerializer
 from ..models import (
     AzureGroup, GroupMembership, GroupOwnership,
     ProtectedResource, AccessControlMethod, AccessGrant,
-    FortiGatePolicy, BusinessUnit
+    FortiGatePolicy, BusinessUnit, BusinessUnitMembership
 )
 
 
@@ -56,6 +56,19 @@ class BusinessUnitSerializer(NetBoxModelSerializer):
         model = BusinessUnit
         fields = [
             'id', 'url', 'display', 'name', 'description', 'parent', 'contact', 'is_active',
+            'created', 'last_updated', 'custom_fields', 'tags'
+        ]
+        read_only_fields = ['created', 'last_updated']
+
+
+class BusinessUnitMembershipSerializer(NetBoxModelSerializer):
+    url = serializers.HyperlinkedIdentityField(view_name='plugins-api:netbox_azure_groups-api:businessunitmembership-detail')
+
+    class Meta:
+        model = BusinessUnitMembership
+        fields = [
+            'id', 'url', 'display', 'business_unit', 'contact', 'role', 
+            'start_date', 'end_date', 'is_active', 'notes',
             'created', 'last_updated', 'custom_fields', 'tags'
         ]
         read_only_fields = ['created', 'last_updated']
