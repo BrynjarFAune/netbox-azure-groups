@@ -55,7 +55,7 @@ class BusinessUnitView(generic.ObjectView):
         child_units = instance.children.filter(is_active=True)
         
         # Get protected resources using this business unit
-        protected_resources = instance.protected_resources.all()
+        protected_resources = instance.resources.all()
         
         return {
             'child_units': child_units,
@@ -68,7 +68,7 @@ class BusinessUnitView(generic.ObjectView):
 class BusinessUnitListView(generic.ObjectListView):
     queryset = models.BusinessUnit.objects.annotate(
         child_count=Count('children'),
-        resource_count=Count('protected_resources')
+        resource_count=Count('resources')
     ).select_related('parent', 'contact')
     table = tables.BusinessUnitTable
     filterset = filtersets.BusinessUnitFilterSet

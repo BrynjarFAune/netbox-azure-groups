@@ -123,7 +123,7 @@ class BusinessUnitViewSet(NetBoxModelViewSet):
     def resources(self, request, pk=None):
         """List protected resources for this business unit."""
         unit = self.get_object()
-        resources = ProtectedResource.objects.filter(business_unit=unit)
+        resources = unit.resources.all()
         
         return Response({
             'business_unit': unit.name,
