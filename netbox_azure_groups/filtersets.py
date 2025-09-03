@@ -46,7 +46,6 @@ class BusinessUnitFilterSet(filterset.FilterSet):
 
 class ProtectedResourceFilterSet(filterset.FilterSet):
     name = django_filters.CharFilter(lookup_expr='icontains')
-    business_unit = django_filters.ModelChoiceFilter(queryset=BusinessUnit.objects.all())
     business_unit_name = django_filters.CharFilter(
         field_name='business_unit__name', 
         lookup_expr='icontains',
@@ -56,7 +55,7 @@ class ProtectedResourceFilterSet(filterset.FilterSet):
     class Meta:
         model = ProtectedResource
         fields = [
-            'name', 'resource_type', 'criticality', 
+            'name', 'resource_type', 'criticality', 'business_unit',
             'site', 'location', 'is_active', 'owner_contact'
         ]
 
