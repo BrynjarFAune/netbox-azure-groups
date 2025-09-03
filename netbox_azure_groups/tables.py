@@ -135,11 +135,11 @@ class FortiGatePolicyTable(BaseTable):
     action = tables.TemplateColumn(
         template_code="""
         {% if record.action == 'accept' %}
-            <span class="badge bg-success">{{ record.get_action_display }}</span>
+            <span class="badge bg-success text-white fw-bold px-3">✓ {{ record.get_action_display|upper }}</span>
         {% elif record.action == 'deny' %}
-            <span class="badge bg-danger">{{ record.get_action_display }}</span>
+            <span class="badge bg-danger text-white fw-bold px-3">✗ {{ record.get_action_display|upper }}</span>
         {% else %}
-            <span class="badge bg-info">{{ record.get_action_display }}</span>
+            <span class="badge bg-warning text-dark fw-bold px-3">{{ record.get_action_display|upper }}</span>
         {% endif %}
         """,
         verbose_name='Action'
@@ -147,9 +147,9 @@ class FortiGatePolicyTable(BaseTable):
     status = tables.TemplateColumn(
         template_code="""
         {% if record.status == 'enable' %}
-            <span class="badge bg-success">{{ record.get_status_display }}</span>
+            <span class="badge bg-success text-white fw-bold px-3">● {{ record.get_status_display|upper }}</span>
         {% else %}
-            <span class="badge bg-secondary">{{ record.get_status_display }}</span>
+            <span class="badge bg-secondary text-white fw-bold px-3">○ {{ record.get_status_display|upper }}</span>
         {% endif %}
         """,
         verbose_name='Status'
@@ -161,9 +161,9 @@ class FortiGatePolicyTable(BaseTable):
     utm_status = tables.TemplateColumn(
         template_code="""
         {% if record.utm_status == 'enable' %}
-            <span class="badge bg-warning">Enabled</span>
+            <span class="badge bg-warning text-dark fw-bold px-3">🛡️ UTM</span>
         {% else %}
-            <span class="badge bg-secondary">Disabled</span>
+            <span class="badge bg-light text-muted fw-bold px-3">—</span>
         {% endif %}
         """,
         verbose_name='UTM'
@@ -172,9 +172,9 @@ class FortiGatePolicyTable(BaseTable):
         template_code="""
         {% with count=record.get_usage_count %}
             {% if count > 0 %}
-                <span class="badge bg-primary">{{ count }}</span>
+                <span class="badge bg-primary text-white fw-bold px-3" title="{{ count }} usage{{ count|pluralize }}">{{ count }}</span>
             {% else %}
-                <span class="badge bg-secondary">0</span>
+                <span class="badge bg-light text-muted fw-bold px-3" title="No usage">—</span>
             {% endif %}
         {% endwith %}
         """,
@@ -185,9 +185,9 @@ class FortiGatePolicyTable(BaseTable):
         template_code="""
         {% with count=record.groups_count %}
             {% if count > 0 %}
-                <span class="badge bg-success">{{ count }} group{{ count|pluralize }}</span>
+                <span class="badge bg-info text-white fw-bold px-3" title="{{ count }} Azure group{{ count|pluralize }}">👥 {{ count }}</span>
             {% else %}
-                <span class="badge bg-secondary">0 groups</span>
+                <span class="badge bg-light text-muted fw-bold px-3" title="No Azure groups">—</span>
             {% endif %}
         {% endwith %}
         """,
@@ -216,7 +216,7 @@ class FortiGatePolicyTable(BaseTable):
 
 class AccessGrantTable(BaseTable):
     resource = tables.LinkColumn(
-        'plugins:netbox_access_control:protectedresource',
+        'plugins:netbox_azure_groups:protectedresource',
         args=[tables.A('resource.pk')],
         text=lambda record: record.resource.name
     )
@@ -226,12 +226,12 @@ class AccessGrantTable(BaseTable):
         text=lambda record: record.contact.name
     )
     azure_group = tables.LinkColumn(
-        'plugins:netbox_access_control:azuregroup',
+        'plugins:netbox_azure_groups:azuregroup',
         args=[tables.A('azure_group.pk')],
         text=lambda record: record.azure_group.name
     )
     control_method = tables.LinkColumn(
-        'plugins:netbox_access_control:accesscontrolmethod',
+        'plugins:netbox_azure_groups:accesscontrolmethod',
         args=[tables.A('control_method.pk')],
         text=lambda record: record.control_method.name
     )
