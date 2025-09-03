@@ -852,5 +852,12 @@ class FortiGatePolicy(NetBoxModel):
         
         return description
     
+    def get_usage_count(self):
+        """Get count of access control methods that use this policy"""
+        return AccessControlMethod.objects.filter(
+            control_type='fortigate_policy',
+            configuration__policy_id=self.policy_id
+        ).count()
+    
     def get_absolute_url(self):
         return reverse('plugins:netbox_azure_groups:fortigatepolicy', args=[self.pk])

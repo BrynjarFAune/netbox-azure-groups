@@ -134,15 +134,16 @@ class FortiGatePolicyTable(BaseTable):
     )
     usage_count = tables.TemplateColumn(
         template_code="""
-        {% if record.access_methods.count > 0 %}
-            <span class="badge bg-primary">{{ record.access_methods.count }}</span>
-        {% else %}
-            <span class="badge bg-secondary">0</span>
-        {% endif %}
+        {% with count=record.get_usage_count %}
+            {% if count > 0 %}
+                <span class="badge bg-primary">{{ count }}</span>
+            {% else %}
+                <span class="badge bg-secondary">0</span>
+            {% endif %}
+        {% endwith %}
         """,
         verbose_name='Usage',
-        orderable=True,
-        accessor=tables.A('access_methods.count')
+        orderable=False
     )
     ai_description = tables.Column(
         verbose_name='Description', 
