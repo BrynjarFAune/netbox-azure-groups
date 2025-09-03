@@ -161,9 +161,44 @@ class ServiceAccessControlExtension(AccessControlExtension):
         return self.render('netbox_azure_groups/inc/access_control_tab.html', context)
 
 
+class ContactAccessControlExtension(PluginTemplateExtension):
+    model = 'tenancy.contact'
+    
+    def right_page(self):
+        contact = self.context['object']
+        
+        from tenancy.models import Contact
+        if not isinstance(contact, Contact):
+            return ""
+        
+        # Get all access grants for this contact
+        access_grants = AccessGrant.objects.filter(
+            contact=contact
+        ).select_related(
+            'resource', 'azure_group', 'control_method'
+        )
+        
+        # Get access control methods available through groups
+        group_memberships = contact.azure_group_memberships.select_related('group')
+        azure_groups = [m.group for m in group_memberships]
+        
+        potential_methods = AccessControlMethod.objects.filter(
+            azure_group__in=azure_groups, 
+            is_active=True
+        ).select_related('resource', 'azure_group')
+        
+        return self.render('netbox_azure_groups/inc/contact_access_control.html', {
+            'contact': contact,
+            'access_grants': access_grants,
+            'potential_methods': potential_methods,
+            'has_access': access_grants.exists() or potential_methods.exists()
+        })
+
+
 # Re-enable template extensions with new direct ForeignKey models + access control extensions
 template_extensions = [
     ContactAzureGroupsExtension, 
+    ContactAccessControlExtension,
     DeviceAzureGroupsExtension,
     DeviceAccessControlExtension,
     VirtualMachineAccessControlExtension, 
