@@ -67,8 +67,8 @@ class BusinessUnitView(generic.ObjectView):
 
 class BusinessUnitListView(generic.ObjectListView):
     queryset = models.BusinessUnit.objects.annotate(
-        child_count=Count('businessunit_set'),
-        resource_count=Count('protected_resources')
+        child_count=Count('children'),
+        resource_count=Count('resources')
     ).select_related('parent', 'contact')
     table = tables.BusinessUnitTable
     filterset = filtersets.BusinessUnitFilterSet
