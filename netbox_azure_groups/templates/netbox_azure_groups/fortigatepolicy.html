@@ -3,6 +3,8 @@
 {% load buttons %}
 {% load perms %}
 
+{% block title %}{{ object.name|default:"Policy "|add:object.policy_id }} - FortiGate Policies{% endblock %}
+
 {# Override control buttons to only show view actions - policies are read-only #}
 {% block control-buttons %}
     {% block extra_controls %}{% endblock %}
@@ -182,7 +184,7 @@
                             {% elif object.log_traffic == 'utm' %}
                                 <span class="badge bg-warning text-dark">{{ object.get_log_traffic_display }}</span>
                             {% else %}
-                                <span class="badge bg-dark">{{ object.get_log_traffic_display }}</span>
+                                <span class="badge bg-secondary">{{ object.get_log_traffic_display }}</span>
                             {% endif %}
                         </td>
                     </tr>

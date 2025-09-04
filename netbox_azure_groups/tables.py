@@ -97,7 +97,7 @@ class BusinessUnitMembershipTable(NetBoxTable):
         {% elif record.role == 'contributor' %}
             <span class="badge bg-info">{{ record.get_role_display }}</span>
         {% elif record.role == 'viewer' %}
-            <span class="badge bg-dark">{{ record.get_role_display }}</span>
+            <span class="badge bg-secondary">{{ record.get_role_display }}</span>
         {% else %}
             <span class="badge bg-primary">{{ record.get_role_display }}</span>
         {% endif %}
@@ -235,7 +235,7 @@ class FortiGatePolicyTable(BaseTable):
         {% if record.status == 'enable' %}
             <span class="badge bg-success">{{ record.get_status_display }}</span>
         {% else %}
-            <span class="badge bg-dark">{{ record.get_status_display }}</span>
+            <span class="badge bg-secondary">{{ record.get_status_display }}</span>
         {% endif %}
         """,
         verbose_name='Status'
@@ -249,7 +249,7 @@ class FortiGatePolicyTable(BaseTable):
         {% if record.utm_status == 'enable' %}
             <span class="badge bg-warning text-dark">UTM</span>
         {% else %}
-            <span class="badge bg-dark">Disabled</span>
+            <span class="badge bg-secondary">Disabled</span>
         {% endif %}
         """,
         verbose_name='UTM'
@@ -260,7 +260,7 @@ class FortiGatePolicyTable(BaseTable):
             {% if count > 0 %}
                 <span class="badge bg-primary" title="Referenced by {{ count }} access control method{{ count|pluralize }}">{{ count }}</span>
             {% else %}
-                <span class="badge bg-dark" title="Not used by any access control methods">0</span>
+                <span class="badge bg-secondary" title="Not used by any access control methods">0</span>
             {% endif %}
         {% endwith %}
         """,
@@ -273,7 +273,7 @@ class FortiGatePolicyTable(BaseTable):
             {% if count > 0 %}
                 <span class="badge bg-info" title="{{ count }} Azure group{{ count|pluralize }} use this policy">{{ count }}</span>
             {% else %}
-                <span class="badge bg-dark" title="No Azure groups use this policy">0</span>
+                <span class="badge bg-secondary" title="No Azure groups use this policy">0</span>
             {% endif %}
         {% endwith %}
         """,

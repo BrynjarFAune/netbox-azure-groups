@@ -2,12 +2,12 @@
 {% load buttons %}
 {% load helpers %}
 
-{% block title %}FortiGate Policies{% endblock %}
+{% block title %}FortiGate Policies - Access Control{% endblock %}
 
 {% block header %}
 <div class="row">
     <div class="col-sm-8 col-md-9">
-        <h1>{% block pretitle %}{% endblock %}FortiGate Policies</h1>
+        <h1>{% block pretitle %}{% endblock %}<i class="mdi mdi-firewall text-danger"></i> FortiGate Policies</h1>
     </div>
     <div class="col-sm-4 col-md-3 text-end">
         {# Bookmark button removed due to compatibility issues #}
@@ -16,13 +16,13 @@
 {% endblock header %}
 
 {% block content_title %}
-<div class="d-flex justify-content-between align-items-center">
+<div class="d-flex justify-content-between align-items-center mb-3">
     <div>
-        <h3><i class="mdi mdi-firewall text-danger"></i> FortiGate Policy Browser</h3>
-        <p class="text-muted">Browse and search through {{ object_count }} FortiGate firewall policies with AI-generated descriptions</p>
+        <h2 class="mb-1"><i class="mdi mdi-firewall text-danger me-2"></i>FortiGate Policy Browser</h2>
+        <p class="text-muted mb-0">Browse and search through {{ object_count }} FortiGate firewall policies with AI-generated descriptions</p>
     </div>
-    <div>
-        <span class="badge bg-info">{{ filter.qs.count }} of {{ object_count }} policies</span>
+    <div class="text-end">
+        <div class="badge bg-info fs-6 px-3 py-2">{{ filter.qs.count }} of {{ object_count }} policies</div>
     </div>
 </div>
 {% endblock content_title %}

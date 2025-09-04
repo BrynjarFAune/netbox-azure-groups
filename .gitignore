@@ -161,3 +161,7 @@ netbox_migration_agent.py
 *_sample.json
 *_raw.json
 *_parsed_*.json
+
+# Project context files (contains development info)
+CLAUDE.md
+PROJECT_CONTEXT.md

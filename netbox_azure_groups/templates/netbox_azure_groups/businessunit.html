@@ -357,7 +357,7 @@
                                     {% elif membership.role == 'contributor' %}
                                         <span class="badge bg-info">{{ membership.get_role_display }}</span>
                                     {% elif membership.role == 'viewer' %}
-                                        <span class="badge bg-dark">{{ membership.get_role_display }}</span>
+                                        <span class="badge bg-secondary">{{ membership.get_role_display }}</span>
                                     {% else %}
                                         <span class="badge bg-primary">{{ membership.get_role_display }}</span>
                                     {% endif %}
@@ -372,7 +372,7 @@
                                     {% if membership.is_active %}
                                         <span class="badge bg-success">Active</span>
                                     {% else %}
-                                        <span class="badge bg-dark">Inactive</span>
+                                        <span class="badge bg-secondary">Inactive</span>
                                     {% endif %}
                                 </td>
                             </tr>
@@ -393,7 +393,7 @@
                                     {% elif membership.role == 'contributor' %}
                                         <span class="badge bg-info">{{ membership.get_role_display }}</span>
                                     {% elif membership.role == 'viewer' %}
-                                        <span class="badge bg-dark">{{ membership.get_role_display }}</span>
+                                        <span class="badge bg-secondary">{{ membership.get_role_display }}</span>
                                     {% else %}
                                         <span class="badge bg-primary">{{ membership.get_role_display }}</span>
                                     {% endif %}
@@ -409,7 +409,7 @@
                                     {% if membership.is_active %}
                                         <span class="badge bg-success">Active</span>
                                     {% else %}
-                                        <span class="badge bg-dark">Inactive</span>
+                                        <span class="badge bg-secondary">Inactive</span>
                                     {% endif %}
                                 </td>
                             </tr>
