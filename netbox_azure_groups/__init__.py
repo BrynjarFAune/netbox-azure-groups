@@ -6,7 +6,7 @@ class AccessControlConfig(PluginConfig):
     description = 'Comprehensive access control management with FortiGate integration and Azure AD groups'
     version = '1.0.0'
     author = 'Brynjar F. Aune'
-    author_email = 'brynjar.aune@example.com'
+    author_email = 'contact@example.com'
     base_url = 'access-control'
     required_settings = []
     

@@ -130,3 +130,34 @@ dmypy.json
 
 # Claude Code local settings
 .claude/
+
+# Local deployment scripts (plugin-specific)
+deploy-plugin.ps1
+run-migrations.ps1
+check-plugin-status.ps1
+*.exe
+
+# Development and project files - not needed for plugin functionality
+*.md
+!README.md
+project.md
+user_stories.md
+access-control-project-spec.md
+rbac-extension-*.md
+CHANGELOG.md
+CONTEXT_SUMMARY.md
+DEPLOYMENT_GUIDE.md
+FINAL_STATUS.md
+PROJECT_STATUS.md
+
+# Development data and test scripts
+create_test_data.py
+fortigate_*.py
+fortigate_*.json
+migration_examples.py
+netbox_migration_agent.py
+
+# Sample/test data
+*_sample.json
+*_raw.json
+*_parsed_*.json
