@@ -74,11 +74,28 @@ class BusinessUnitView(generic.ObjectView):
             access_methods__resource__business_unit=instance
         ).distinct()
         
-        # Get business unit memberships
-        memberships = models.BusinessUnitMembership.objects.filter(
+        # Get business unit memberships (direct)
+        direct_memberships = models.BusinessUnitMembership.objects.filter(
             business_unit=instance,
             is_active=True
         ).select_related('contact').order_by('role', 'contact__name')
+        
+        # Get inferred memberships from child business units
+        child_business_units = self._get_all_descendants(instance)
+        inferred_memberships = models.BusinessUnitMembership.objects.filter(
+            business_unit__in=child_business_units,
+            is_active=True
+        ).select_related('contact', 'business_unit').order_by('business_unit__name', 'role', 'contact__name')
+        
+        # Combine memberships with type annotation
+        all_memberships = []
+        for membership in direct_memberships:
+            membership.membership_type = 'direct'
+            all_memberships.append(membership)
+        
+        for membership in inferred_memberships:
+            membership.membership_type = 'inferred'
+            all_memberships.append(membership)
         
         return {
             'child_units': child_units,
@@ -88,9 +105,24 @@ class BusinessUnitView(generic.ObjectView):
             'access_methods_count': access_methods.count(),
             'access_grants_count': access_grants.count(),
             'related_azure_groups': related_azure_groups[:12],  # Show first 12 in template
-            'memberships': memberships[:20],  # Show first 20 members
-            'memberships_count': memberships.count(),
+            'memberships': all_memberships[:20],  # Show first 20 members (direct + inferred)
+            'direct_memberships': direct_memberships[:10],  # For direct display section
+            'inferred_memberships': inferred_memberships[:10],  # For inferred display section
+            'direct_memberships_count': direct_memberships.count(),
+            'inferred_memberships_count': inferred_memberships.count(),
+            'total_memberships_count': len(all_memberships),
         }
+    
+    def _get_all_descendants(self, business_unit):
+        """Recursively get all descendant business units."""
+        descendants = []
+        direct_children = models.BusinessUnit.objects.filter(parent=business_unit, is_active=True)
+        
+        for child in direct_children:
+            descendants.append(child)
+            descendants.extend(self._get_all_descendants(child))
+        
+        return descendants
 
 
 class BusinessUnitListView(generic.ObjectListView):

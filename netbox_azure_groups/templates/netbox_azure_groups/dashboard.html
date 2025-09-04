@@ -116,7 +116,7 @@
                                 {% for item in resource_types %}
                                 <tr>
                                     <td>{{ item.resource_type|capfirst }}</td>
-                                    <td><span class="badge bg-secondary">{{ item.count }}</span></td>
+                                    <td><span class="badge bg-primary">{{ item.count }}</span></td>
                                     <td>
                                         {% widthratio item.count stats.total_resources 100 as percentage %}
                                         <div class="progress" style="height: 8px;">
@@ -163,7 +163,7 @@
                                             {{ item.control_type|capfirst }}
                                         {% endif %}
                                     </td>
-                                    <td><span class="badge bg-secondary">{{ item.count }}</span></td>
+                                    <td><span class="badge bg-primary">{{ item.count }}</span></td>
                                     <td>
                                         {% widthratio item.count stats.total_methods 100 as percentage %}
                                         <div class="progress" style="height: 8px;">
@@ -214,7 +214,7 @@
                                         {% endif %}
                                     </td>
                                     <td>
-                                        <span class="badge bg-secondary">{{ resource.get_resource_type_display }}</span>
+                                        <span class="badge bg-info">{{ resource.get_resource_type_display }}</span>
                                     </td>
                                     <td>
                                         <span class="badge bg-success">{{ resource.grant_count }}</span>
@@ -330,7 +330,13 @@
                             <small class="text-muted">{{ resource.get_resource_type_display }}</small>
                         </div>
                         <div class="text-end">
-                            <span class="badge bg-secondary">{{ resource.get_criticality_display }}</span>
+                            {% if resource.criticality == 'critical' %}
+                                <span class="badge bg-danger">{{ resource.get_criticality_display }}</span>
+                            {% elif resource.criticality == 'high' %}
+                                <span class="badge bg-warning text-dark">{{ resource.get_criticality_display }}</span>
+                            {% else %}
+                                <span class="badge bg-info">{{ resource.get_criticality_display }}</span>
+                            {% endif %}
                             <br>
                             <small class="text-muted">{{ resource.created|timesince }} ago</small>
                         </div>

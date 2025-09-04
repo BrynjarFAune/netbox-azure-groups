@@ -97,8 +97,12 @@
                     <tr>
                         <th scope="row">Team Members</th>
                         <td>
-                            <span class="badge bg-primary">{{ memberships_count|default:0 }}</span>
-                            member{{ memberships_count|default:0|pluralize }}
+                            <span class="badge bg-primary">{{ direct_memberships_count|default:0 }}</span>
+                            direct member{{ direct_memberships_count|default:0|pluralize }}
+                            {% if inferred_memberships_count > 0 %}
+                                <br><span class="badge bg-info">{{ inferred_memberships_count }}</span>
+                                inferred member{{ inferred_memberships_count|pluralize }}
+                            {% endif %}
                         </td>
                     </tr>
                 </table>
@@ -313,13 +317,16 @@
 {% endif %}
 
 <!-- Team Members -->
-{% if memberships %}
+{% if direct_memberships or inferred_memberships %}
 <div class="row mb-3">
     <div class="col-12">
         <div class="card">
             <h5 class="card-header">
                 <i class="mdi mdi-account-group"></i> Team Members
-                <span class="badge bg-primary ms-2">{{ memberships_count }}</span>
+                <span class="badge bg-primary ms-2">{{ direct_memberships_count }}</span>
+                {% if inferred_memberships_count > 0 %}
+                    <span class="badge bg-info ms-1">+{{ inferred_memberships_count }} inferred</span>
+                {% endif %}
             </h5>
             <div class="card-body">
                 <div class="table-responsive">
@@ -328,12 +335,13 @@
                             <tr>
                                 <th>Contact</th>
                                 <th>Role</th>
-                                <th>Start Date</th>
+                                <th>Business Unit</th>
+                                <th>Membership Type</th>
                                 <th>Status</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for membership in memberships %}
+                            {% for membership in direct_memberships %}
                             <tr>
                                 <td>
                                     <a href="{{ membership.contact.get_absolute_url }}">{{ membership.contact.name }}</a>
@@ -349,23 +357,59 @@
                                     {% elif membership.role == 'contributor' %}
                                         <span class="badge bg-info">{{ membership.get_role_display }}</span>
                                     {% elif membership.role == 'viewer' %}
-                                        <span class="badge bg-secondary">{{ membership.get_role_display }}</span>
+                                        <span class="badge bg-dark">{{ membership.get_role_display }}</span>
                                     {% else %}
                                         <span class="badge bg-primary">{{ membership.get_role_display }}</span>
                                     {% endif %}
                                 </td>
                                 <td>
-                                    {% if membership.start_date %}
-                                        {{ membership.start_date|date:"Y-m-d" }}
-                                    {% else %}
-                                        <span class="text-muted">Not specified</span>
-                                    {% endif %}
+                                    <strong>{{ object.name }}</strong>
+                                </td>
+                                <td>
+                                    <span class="badge bg-success">Direct</span>
                                 </td>
                                 <td>
                                     {% if membership.is_active %}
                                         <span class="badge bg-success">Active</span>
                                     {% else %}
-                                        <span class="badge bg-secondary">Inactive</span>
+                                        <span class="badge bg-dark">Inactive</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            {% for membership in inferred_memberships %}
+                            <tr class="table-light">
+                                <td>
+                                    <a href="{{ membership.contact.get_absolute_url }}">{{ membership.contact.name }}</a>
+                                    {% if membership.contact.email %}
+                                        <br><small class="text-muted">{{ membership.contact.email }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if membership.role == 'admin' %}
+                                        <span class="badge bg-danger">{{ membership.get_role_display }}</span>
+                                    {% elif membership.role == 'manager' %}
+                                        <span class="badge bg-warning text-dark">{{ membership.get_role_display }}</span>
+                                    {% elif membership.role == 'contributor' %}
+                                        <span class="badge bg-info">{{ membership.get_role_display }}</span>
+                                    {% elif membership.role == 'viewer' %}
+                                        <span class="badge bg-dark">{{ membership.get_role_display }}</span>
+                                    {% else %}
+                                        <span class="badge bg-primary">{{ membership.get_role_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{{ membership.business_unit.get_absolute_url }}">{{ membership.business_unit.name }}</a>
+                                    <small class="text-muted">(child unit)</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">Inferred</span>
+                                </td>
+                                <td>
+                                    {% if membership.is_active %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-dark">Inactive</span>
                                     {% endif %}
                                 </td>
                             </tr>
@@ -373,10 +417,10 @@
                         </tbody>
                     </table>
                 </div>
-                {% if memberships_count > 20 %}
+                {% if total_memberships_count > 20 %}
                 <div class="mt-3">
                     <a href="{% url 'plugins:netbox_azure_groups:businessunitmembership_list' %}?business_unit={{ object.pk }}" class="btn btn-outline-primary">
-                        View All {{ memberships_count }} Members →
+                        View All {{ total_memberships_count }} Members →
                     </a>
                 </div>
                 {% endif %}

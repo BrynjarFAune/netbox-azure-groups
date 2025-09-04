@@ -177,7 +177,13 @@
                     <tr>
                         <th scope="row">Log Traffic</th>
                         <td>
-                            <span class="badge bg-secondary">{{ object.get_log_traffic_display }}</span>
+                            {% if object.log_traffic == 'all' %}
+                                <span class="badge bg-primary">{{ object.get_log_traffic_display }}</span>
+                            {% elif object.log_traffic == 'utm' %}
+                                <span class="badge bg-warning text-dark">{{ object.get_log_traffic_display }}</span>
+                            {% else %}
+                                <span class="badge bg-dark">{{ object.get_log_traffic_display }}</span>
+                            {% endif %}
                         </td>
                     </tr>
                     <tr>
@@ -254,7 +260,7 @@
                             </td>
                             <td>
                                 <a href="{{ method.resource.get_absolute_url }}">{{ method.resource.name }}</a>
-                                <span class="badge bg-secondary ms-1">{{ method.resource.get_resource_type_display }}</span>
+                                <span class="badge bg-info ms-1">{{ method.resource.get_resource_type_display }}</span>
                             </td>
                             <td>
                                 <a href="{{ method.azure_group.get_absolute_url }}">{{ method.azure_group.name }}</a>

@@ -1,5 +1,5 @@
 import django_tables2 as tables
-from netbox.tables import BaseTable, ChoiceFieldColumn
+from netbox.tables import NetBoxTable, BaseTable, ChoiceFieldColumn
 from .models import AzureGroup, ProtectedResource, AccessControlMethod, FortiGatePolicy, AccessGrant, BusinessUnit, BusinessUnitMembership
 
 
@@ -9,8 +9,32 @@ class AzureGroupTable(BaseTable):
         verbose_name='Name',
         linkify=lambda record: record.get_absolute_url()
     )
-    source = ChoiceFieldColumn()
-    group_type = ChoiceFieldColumn() 
+    source = tables.TemplateColumn(
+        template_code="""
+        {% if record.source == 'azure_ad' %}
+            <span class="badge bg-primary">{{ record.get_source_display }}</span>
+        {% elif record.source == 'on_premises' %}
+            <span class="badge bg-info">{{ record.get_source_display }}</span>
+        {% else %}
+            <span class="badge bg-warning text-dark">{{ record.get_source_display }}</span>
+        {% endif %}
+        """,
+        verbose_name='Source'
+    )
+    group_type = tables.TemplateColumn(
+        template_code="""
+        {% if record.group_type == 'security' %}
+            <span class="badge bg-danger">{{ record.get_group_type_display }}</span>
+        {% elif record.group_type == 'microsoft365' %}
+            <span class="badge bg-primary">{{ record.get_group_type_display }}</span>
+        {% elif record.group_type == 'mail_security' %}
+            <span class="badge bg-warning text-dark">{{ record.get_group_type_display }}</span>
+        {% else %}
+            <span class="badge bg-info">{{ record.get_group_type_display }}</span>
+        {% endif %}
+        """,
+        verbose_name='Type'
+    ) 
     member_count = tables.Column(verbose_name='Members')
     object_id = tables.Column(verbose_name='Azure ID', attrs={'td': {'class': 'font-monospace'}})
 
@@ -30,7 +54,7 @@ class AzureGroupTable(BaseTable):
             del self.base_columns['actions']
 
 
-class BusinessUnitTable(BaseTable):
+class BusinessUnitTable(NetBoxTable):
     id = tables.Column(verbose_name='ID')
     name = tables.Column(
         verbose_name='Name',
@@ -48,13 +72,13 @@ class BusinessUnitTable(BaseTable):
     resource_count = tables.Column(verbose_name='Resources', empty_values=())
     is_active = tables.BooleanColumn(verbose_name='Active')
 
-    class Meta(BaseTable.Meta):
+    class Meta(NetBoxTable.Meta):
         model = BusinessUnit
-        fields = ('id', 'name', 'parent', 'contact', 'child_count', 'resource_count', 'is_active')
-        default_columns = ('id', 'name', 'parent', 'contact', 'child_count', 'resource_count', 'is_active')
+        fields = ('pk', 'id', 'name', 'parent', 'contact', 'child_count', 'resource_count', 'is_active', 'actions')
+        default_columns = ('pk', 'name', 'parent', 'contact', 'child_count', 'resource_count', 'is_active')
 
 
-class BusinessUnitMembershipTable(BaseTable):
+class BusinessUnitMembershipTable(NetBoxTable):
     id = tables.Column(verbose_name='ID')
     business_unit = tables.Column(
         verbose_name='Business Unit',
@@ -64,18 +88,33 @@ class BusinessUnitMembershipTable(BaseTable):
         verbose_name='Contact',
         linkify=lambda record: record.contact.get_absolute_url() if record.contact else None
     )
-    role = ChoiceFieldColumn(verbose_name='Role')
+    role = tables.TemplateColumn(
+        template_code="""
+        {% if record.role == 'admin' %}
+            <span class="badge bg-danger">{{ record.get_role_display }}</span>
+        {% elif record.role == 'manager' %}
+            <span class="badge bg-warning text-dark">{{ record.get_role_display }}</span>
+        {% elif record.role == 'contributor' %}
+            <span class="badge bg-info">{{ record.get_role_display }}</span>
+        {% elif record.role == 'viewer' %}
+            <span class="badge bg-dark">{{ record.get_role_display }}</span>
+        {% else %}
+            <span class="badge bg-primary">{{ record.get_role_display }}</span>
+        {% endif %}
+        """,
+        verbose_name='Role'
+    )
     start_date = tables.DateColumn(verbose_name='Start Date', format='Y-m-d')
     end_date = tables.DateColumn(verbose_name='End Date', format='Y-m-d')
     is_active = tables.BooleanColumn(verbose_name='Active')
 
-    class Meta(BaseTable.Meta):
+    class Meta(NetBoxTable.Meta):
         model = BusinessUnitMembership
-        fields = ('id', 'business_unit', 'contact', 'role', 'start_date', 'end_date', 'is_active')
-        default_columns = ('id', 'business_unit', 'contact', 'role', 'start_date', 'is_active')
+        fields = ('pk', 'id', 'business_unit', 'contact', 'role', 'start_date', 'end_date', 'is_active', 'actions')
+        default_columns = ('pk', 'business_unit', 'contact', 'role', 'start_date', 'is_active')
 
 
-class ProtectedResourceTable(BaseTable):
+class ProtectedResourceTable(NetBoxTable):
     id = tables.Column(verbose_name='ID')
     name = tables.Column(
         verbose_name='Name',
@@ -100,19 +139,19 @@ class ProtectedResourceTable(BaseTable):
     access_method_count = tables.Column(verbose_name='Access Methods', empty_values=())
     grant_count = tables.Column(verbose_name='Access Grants', empty_values=())
 
-    class Meta(BaseTable.Meta):
+    class Meta(NetBoxTable.Meta):
         model = ProtectedResource
         fields = (
-            'id', 'name', 'resource_type', 'criticality', 'business_unit',
-            'site', 'location', 'owner_contact', 'is_active', 'access_method_count', 'grant_count'
+            'pk', 'id', 'name', 'resource_type', 'criticality', 'business_unit',
+            'site', 'location', 'owner_contact', 'is_active', 'access_method_count', 'grant_count', 'actions'
         )
         default_columns = (
-            'id', 'name', 'resource_type', 'business_unit', 'criticality', 
+            'pk', 'name', 'resource_type', 'business_unit', 'criticality', 
             'is_active', 'access_method_count', 'grant_count'
         )
 
 
-class AccessControlMethodTable(BaseTable):
+class AccessControlMethodTable(NetBoxTable):
     id = tables.Column(verbose_name='ID')
     name = tables.Column(
         verbose_name='Name',
@@ -122,24 +161,50 @@ class AccessControlMethodTable(BaseTable):
         verbose_name='Protected Resource',
         linkify=lambda record: record.resource.get_absolute_url() if record.resource else None
     )
-    control_type = ChoiceFieldColumn()
+    control_type = tables.TemplateColumn(
+        template_code="""
+        {% if record.control_type == 'fortigate_policy' %}
+            <span class="badge bg-danger">{{ record.get_control_type_display }}</span>
+        {% elif record.control_type == 'badge_reader' %}
+            <span class="badge bg-warning text-dark">{{ record.get_control_type_display }}</span>
+        {% elif record.control_type == 'application_rbac' %}
+            <span class="badge bg-info">{{ record.get_control_type_display }}</span>
+        {% else %}
+            <span class="badge bg-primary">{{ record.get_control_type_display }}</span>
+        {% endif %}
+        """,
+        verbose_name='Control Type'
+    )
     azure_group = tables.Column(
         verbose_name='Azure Group',
         linkify=lambda record: record.azure_group.get_absolute_url() if record.azure_group else None
     )
-    access_level = ChoiceFieldColumn()
+    access_level = tables.TemplateColumn(
+        template_code="""
+        {% if record.access_level == 'admin' %}
+            <span class="badge bg-danger">{{ record.get_access_level_display }}</span>
+        {% elif record.access_level == 'write' %}
+            <span class="badge bg-warning text-dark">{{ record.get_access_level_display }}</span>
+        {% elif record.access_level == 'read' %}
+            <span class="badge bg-info">{{ record.get_access_level_display }}</span>
+        {% else %}
+            <span class="badge bg-primary">{{ record.get_access_level_display }}</span>
+        {% endif %}
+        """,
+        verbose_name='Access Level'
+    )
     is_active = tables.BooleanColumn(verbose_name='Active')
     grant_count = tables.Column(verbose_name='Access Grants', empty_values=())
     last_verified = tables.DateTimeColumn(verbose_name='Last Verified')
 
-    class Meta(BaseTable.Meta):
+    class Meta(NetBoxTable.Meta):
         model = AccessControlMethod
         fields = (
-            'id', 'name', 'resource', 'control_type', 'azure_group', 
-            'access_level', 'is_active', 'grant_count', 'last_verified'
+            'pk', 'id', 'name', 'resource', 'control_type', 'azure_group', 
+            'access_level', 'is_active', 'grant_count', 'last_verified', 'actions'
         )
         default_columns = (
-            'id', 'name', 'resource', 'control_type', 'azure_group', 
+            'pk', 'name', 'resource', 'control_type', 'azure_group', 
             'access_level', 'is_active', 'grant_count'
         )
 
@@ -170,7 +235,7 @@ class FortiGatePolicyTable(BaseTable):
         {% if record.status == 'enable' %}
             <span class="badge bg-success">{{ record.get_status_display }}</span>
         {% else %}
-            <span class="badge bg-secondary">{{ record.get_status_display }}</span>
+            <span class="badge bg-dark">{{ record.get_status_display }}</span>
         {% endif %}
         """,
         verbose_name='Status'
@@ -184,7 +249,7 @@ class FortiGatePolicyTable(BaseTable):
         {% if record.utm_status == 'enable' %}
             <span class="badge bg-warning text-dark">UTM</span>
         {% else %}
-            <span class="badge bg-secondary">Disabled</span>
+            <span class="badge bg-dark">Disabled</span>
         {% endif %}
         """,
         verbose_name='UTM'
@@ -195,7 +260,7 @@ class FortiGatePolicyTable(BaseTable):
             {% if count > 0 %}
                 <span class="badge bg-primary" title="Referenced by {{ count }} access control method{{ count|pluralize }}">{{ count }}</span>
             {% else %}
-                <span class="badge bg-secondary" title="Not used by any access control methods">0</span>
+                <span class="badge bg-dark" title="Not used by any access control methods">0</span>
             {% endif %}
         {% endwith %}
         """,
@@ -208,7 +273,7 @@ class FortiGatePolicyTable(BaseTable):
             {% if count > 0 %}
                 <span class="badge bg-info" title="{{ count }} Azure group{{ count|pluralize }} use this policy">{{ count }}</span>
             {% else %}
-                <span class="badge bg-secondary" title="No Azure groups use this policy">0</span>
+                <span class="badge bg-dark" title="No Azure groups use this policy">0</span>
             {% endif %}
         {% endwith %}
         """,
@@ -235,7 +300,7 @@ class FortiGatePolicyTable(BaseTable):
         )
 
 
-class AccessGrantTable(BaseTable):
+class AccessGrantTable(NetBoxTable):
     resource = tables.LinkColumn(
         'plugins:netbox_azure_groups:protectedresource',
         args=[tables.A('resource.pk')],
@@ -256,20 +321,44 @@ class AccessGrantTable(BaseTable):
         args=[tables.A('control_method.pk')],
         text=lambda record: record.control_method.name
     )
-    access_level = ChoiceFieldColumn()
-    granted_via = ChoiceFieldColumn()
+    access_level = tables.TemplateColumn(
+        template_code="""
+        {% if record.access_level == 'admin' %}
+            <span class="badge bg-danger">{{ record.get_access_level_display }}</span>
+        {% elif record.access_level == 'write' %}
+            <span class="badge bg-warning text-dark">{{ record.get_access_level_display }}</span>
+        {% elif record.access_level == 'read' %}
+            <span class="badge bg-info">{{ record.get_access_level_display }}</span>
+        {% else %}
+            <span class="badge bg-primary">{{ record.get_access_level_display }}</span>
+        {% endif %}
+        """,
+        verbose_name='Access Level'
+    )
+    granted_via = tables.TemplateColumn(
+        template_code="""
+        {% if record.granted_via == 'direct_membership' %}
+            <span class="badge bg-success">{{ record.get_granted_via_display }}</span>
+        {% elif record.granted_via == 'nested_membership' %}
+            <span class="badge bg-info">{{ record.get_granted_via_display }}</span>
+        {% else %}
+            <span class="badge bg-warning text-dark">{{ record.get_granted_via_display }}</span>
+        {% endif %}
+        """,
+        verbose_name='Granted Via'
+    )
     is_active = tables.BooleanColumn()
     first_granted = tables.DateTimeColumn(format='M d, Y H:i')
     last_verified = tables.DateTimeColumn(format='M d, Y H:i')
 
-    class Meta(BaseTable.Meta):
+    class Meta(NetBoxTable.Meta):
         model = AccessGrant
         fields = (
-            'resource', 'contact', 'azure_group', 'control_method',
+            'pk', 'resource', 'contact', 'azure_group', 'control_method',
             'access_level', 'granted_via', 'is_active', 
-            'first_granted', 'last_verified'
+            'first_granted', 'last_verified', 'actions'
         )
         default_columns = (
-            'resource', 'contact', 'azure_group', 'access_level', 
+            'pk', 'resource', 'contact', 'azure_group', 'access_level', 
             'granted_via', 'is_active', 'first_granted'
         )
