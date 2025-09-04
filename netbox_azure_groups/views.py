@@ -71,7 +71,7 @@ class BusinessUnitView(generic.ObjectView):
         
         # Get Azure groups that provide access to resources in this business unit
         related_azure_groups = models.AzureGroup.objects.filter(
-            access_methods__resource__business_unit=instance
+            enables_access_via__resource__business_unit=instance
         ).distinct()
         
         # Get business unit memberships (direct)

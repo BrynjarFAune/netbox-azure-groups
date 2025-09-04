@@ -121,7 +121,7 @@ class BusinessUnitMembership(NetBoxModel):
         return f'{self.contact.name} - {self.business_unit.name} ({self.get_role_display()})'
     
     def get_absolute_url(self):
-        return self.business_unit.get_absolute_url()
+        return reverse('plugins:netbox_azure_groups:businessunitmembership', args=[self.pk])
 
 
 class GroupTypeChoices(ChoiceSet):

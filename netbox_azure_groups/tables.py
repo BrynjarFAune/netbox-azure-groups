@@ -258,26 +258,26 @@ class FortiGatePolicyTable(BaseTable):
         template_code="""
         {% with count=record.get_usage_count %}
             {% if count > 0 %}
-                <span class="badge bg-primary" title="Referenced by {{ count }} access control method{{ count|pluralize }}">{{ count }}</span>
+                <span class="badge bg-primary" title="Used by {{ count }} access control method{{ count|pluralize }} - shows how many NetBox access methods reference this policy">{{ count }}</span>
             {% else %}
-                <span class="badge bg-secondary" title="Not used by any access control methods">0</span>
+                <span class="badge bg-secondary" title="Not used by any NetBox access control methods - this policy is not linked to any resources in NetBox">0</span>
             {% endif %}
         {% endwith %}
         """,
-        verbose_name='Usage',
+        verbose_name='NetBox Usage',
         orderable=False
     )
     groups_count = tables.TemplateColumn(
         template_code="""
         {% with count=record.groups_count %}
             {% if count > 0 %}
-                <span class="badge bg-info" title="{{ count }} Azure group{{ count|pluralize }} use this policy">{{ count }}</span>
+                <span class="badge bg-info" title="{{ count }} Azure AD group{{ count|pluralize }} referenced in this policy's configuration - shows groups mentioned in the FortiGate policy itself">{{ count }}</span>
             {% else %}
-                <span class="badge bg-secondary" title="No Azure groups use this policy">0</span>
+                <span class="badge bg-secondary" title="No Azure AD groups are mentioned in this FortiGate policy's configuration">0</span>
             {% endif %}
         {% endwith %}
         """,
-        verbose_name='Groups',
+        verbose_name='Azure Groups',
         orderable=True,
         accessor='groups_count'
     )

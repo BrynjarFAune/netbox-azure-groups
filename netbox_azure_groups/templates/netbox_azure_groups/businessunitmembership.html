@@ -1,0 +1,173 @@
+{% extends 'generic/object.html' %}
+{% load render_table from django_tables2 %}
+{% load buttons %}
+{% load helpers %}
+
+{% block title %}{{ object.contact.name }} - {{ object.business_unit.name }} Membership{% endblock %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col col-md-6">
+        <div class="card">
+            <h5 class="card-header">Membership Details</h5>
+            <div class="card-body">
+                <table class="table table-hover attr-table">
+                    <tr>
+                        <th scope="row">Contact</th>
+                        <td>
+                            <a href="{% url 'tenancy:contact' object.contact.pk %}">{{ object.contact.name }}</a>
+                            {% if object.contact.email %}
+                                <br>
+                                <small class="text-muted">{{ object.contact.email }}</small>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Business Unit</th>
+                        <td>
+                            <a href="{{ object.business_unit.get_absolute_url }}">{{ object.business_unit.name }}</a>
+                            {% if object.business_unit.description %}
+                                <br>
+                                <small class="text-muted">{{ object.business_unit.description }}</small>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Role</th>
+                        <td>
+                            {% if object.role == 'admin' %}
+                                <span class="badge bg-danger">{{ object.get_role_display }}</span>
+                            {% elif object.role == 'manager' %}
+                                <span class="badge bg-warning text-dark">{{ object.get_role_display }}</span>
+                            {% elif object.role == 'contributor' %}
+                                <span class="badge bg-info">{{ object.get_role_display }}</span>
+                            {% elif object.role == 'viewer' %}
+                                <span class="badge bg-secondary">{{ object.get_role_display }}</span>
+                            {% else %}
+                                <span class="badge bg-primary">{{ object.get_role_display }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Status</th>
+                        <td>
+                            {% if object.is_active %}
+                                <i class="mdi mdi-check-circle text-success"></i> Active
+                            {% else %}
+                                <i class="mdi mdi-close-circle text-danger"></i> Inactive
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col col-md-6">
+        <div class="card">
+            <h5 class="card-header">Timeline</h5>
+            <div class="card-body">
+                <table class="table table-hover attr-table">
+                    <tr>
+                        <th scope="row">Start Date</th>
+                        <td>
+                            {% if object.start_date %}
+                                {{ object.start_date|date:"M d, Y" }}
+                            {% else %}
+                                <span class="text-muted">Not specified</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">End Date</th>
+                        <td>
+                            {% if object.end_date %}
+                                {{ object.end_date|date:"M d, Y" }}
+                            {% else %}
+                                <span class="text-muted">Open-ended</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Duration</th>
+                        <td>
+                            {% if object.start_date %}
+                                {% if object.end_date %}
+                                    {{ object.start_date|timesince:object.end_date }}
+                                {% else %}
+                                    {{ object.start_date|timesince }} (ongoing)
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">Unknown</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if object.notes %}
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="card">
+            <h5 class="card-header">Notes</h5>
+            <div class="card-body">
+                {{ object.notes|linebreaksbr }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <h5 class="card-header">
+                <i class="mdi mdi-office-building"></i> Business Unit Overview
+            </h5>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Hierarchy</h6>
+                        {% if object.business_unit.parent %}
+                            <p>
+                                <i class="mdi mdi-arrow-up-thick text-muted"></i>
+                                <a href="{{ object.business_unit.parent.get_absolute_url }}">{{ object.business_unit.parent.name }}</a>
+                                <br>
+                                <i class="mdi mdi-circle-small text-primary"></i> {{ object.business_unit.name }} <em>(current)</em>
+                            </p>
+                        {% else %}
+                            <p>
+                                <i class="mdi mdi-circle-small text-primary"></i> {{ object.business_unit.name }} <em>(root unit)</em>
+                            </p>
+                        {% endif %}
+                        
+                        {% if child_units %}
+                            <div class="ms-3">
+                                {% for child in child_units %}
+                                    <div>
+                                        <i class="mdi mdi-arrow-down-thick text-muted"></i>
+                                        <a href="{{ child.get_absolute_url }}">{{ child.name }}</a>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Quick Actions</h6>
+                        <div class="btn-group-vertical w-100">
+                            <a href="{{ object.business_unit.get_absolute_url }}" class="btn btn-outline-primary btn-sm">
+                                <i class="mdi mdi-eye"></i> View Business Unit
+                            </a>
+                            <a href="{% url 'plugins:netbox_azure_groups:businessunitmembership_list' %}?business_unit={{ object.business_unit.pk }}" class="btn btn-outline-info btn-sm">
+                                <i class="mdi mdi-account-group"></i> View All Members
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
