@@ -88,6 +88,7 @@ The main dashboard provides:
 2. Define resource types, criticality levels, and ownership
 3. Link resources to business units
 4. Associate with NetBox sites and locations
+5. Configure actual IP addresses/hostnames for resources as needed
 
 ### Access Control Methods
 1. Define how access is granted (policies, physical controls, etc.)

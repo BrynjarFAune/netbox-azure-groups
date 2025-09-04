@@ -256,7 +256,7 @@ class ProtectedResourceForm(NetBoxModelForm):
             'description': forms.Textarea(attrs={'rows': 3}),
             'ip_addresses': forms.Textarea(attrs={
                 'rows': 2, 
-                'placeholder': '["192.168.1.10", "192.168.1.11"]'
+                'placeholder': '["server1.example.com", "server2.example.com"]'
             }),
             'base_url': forms.URLInput(attrs={
                 'placeholder': 'https://example.com/resource'
