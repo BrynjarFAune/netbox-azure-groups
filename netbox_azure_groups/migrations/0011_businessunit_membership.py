@@ -8,7 +8,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('tenancy', '0014_contact_link'),
-        ('netbox_azure_groups', '0003_access_control_models'),
+        ('netbox_azure_groups', '0010_add_business_unit_and_update_protected_resource'),
     ]
 
     operations = [
