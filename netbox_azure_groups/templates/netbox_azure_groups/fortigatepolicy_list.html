@@ -16,13 +16,17 @@
 {% endblock header %}
 
 {% block content_title %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <div>
-        <h2 class="mb-1"><i class="mdi mdi-firewall text-danger me-2"></i>FortiGate Policy Browser</h2>
-        <p class="text-muted mb-0">Browse and search through {{ object_count }} FortiGate firewall policies with AI-generated descriptions</p>
-    </div>
-    <div class="text-end">
-        <div class="badge bg-info fs-6 px-3 py-2">{{ filter.qs.count }} of {{ object_count }} policies</div>
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="mb-1"><i class="mdi mdi-firewall text-danger me-2"></i>FortiGate Policy Browser</h2>
+                <p class="text-muted mb-0">Browse and search through {{ object_count }} FortiGate firewall policies with AI-generated descriptions</p>
+            </div>
+            <div class="text-end">
+                <div class="badge bg-info fs-6 px-3 py-2">{{ filter.qs.count }} of {{ object_count }} policies</div>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock content_title %}
